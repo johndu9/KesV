@@ -14,13 +14,13 @@ public class Soul extends MovablePolygon{
 	private Trail trail;
 	private Territory territory;
 	private int influence;
+	private float radius;
 	
 	public static final int MAX_INFLUENCE = 100;
-	public static final int TERRITORY_RADIUS = 64;
 	
-	public Soul(Point point, FirstPolygon leader){
+	public Soul(float radius, Point point, FirstPolygon leader){
 		super(
-			FirstPolygon.radiusToPoints(16, 16),
+			FirstPolygon.radiusToPoints(radius, 16),
 			random.nextDouble() * Math.PI * 2,
 			point,
 			generateFoundColor(),
@@ -32,8 +32,9 @@ public class Soul extends MovablePolygon{
 		}else{
 			setInfluence(MAX_INFLUENCE);
 		}
+		this.radius = radius;
 		trail = new Trail(this);
-		territory = new Territory(TERRITORY_RADIUS, this);
+		territory = new Territory(getTerritoryRadius(), this);
 	}
 	
 	public void update(int delta){
@@ -48,7 +49,7 @@ public class Soul extends MovablePolygon{
 		double directionIncrement = random.nextDouble() * Math.PI / 16.0 - Math.PI / 32.0;
 		if(
 			!isLost() &&
-			distanceToLeader > TERRITORY_RADIUS + random.nextInt(100) &&
+			distanceToLeader > getTerritoryRadius() + random.nextInt(100) &&
 			(getDirection() < directionToLeader - Math.PI / 4 ||
 			getDirection() > directionToLeader + Math.PI / 4)){
 			setDirection(directionToLeader + directionIncrement);
@@ -60,7 +61,7 @@ public class Soul extends MovablePolygon{
 	
 	public boolean isInTerritory(Point other){
 		float distance = (float)getPosition().distanceTo(other);
-		if(distance < TERRITORY_RADIUS){
+		if(distance < getTerritoryRadius()){
 			return true;
 		}
 		return false;
@@ -80,6 +81,14 @@ public class Soul extends MovablePolygon{
 	
 	public void setInfluence(int influence){
 		this.influence = influence;
+	}
+	
+	public float getRadius(){
+		return radius;
+	}
+	
+	public int getTerritoryRadius(){
+		return (int)radius + Game.TERRITORY_RADIUS / 2;
 	}
 	
 	public void setFound(){
@@ -117,10 +126,6 @@ public class Soul extends MovablePolygon{
 	
 	public boolean isLost(){
 		return leader.equals(FirstPolygon.EMPTY);
-	}
-	
-	public void render(){
-		super.render();
 	}
 	
 }

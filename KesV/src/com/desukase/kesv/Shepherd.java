@@ -16,11 +16,11 @@ public class Shepherd extends MovablePolygon implements Controllable{
 	public static final int LEFT = 1;
 	public static final int DOWN = 2;
 	public static final int RIGHT = 3;
-	public static final int TERRITORY_RADIUS = 96;
 	
 	private static Random random = Game.random;
 	private ArrayList<Soul> souls = new ArrayList<Soul>();
 	private int persuasiveness;
+	private float radius = 16;
 	private Trail trail;
 	private Territory territory;
 	
@@ -34,12 +34,12 @@ public class Shepherd extends MovablePolygon implements Controllable{
 		Color influenceColor = new Color(color);
 		influenceColor.setAlpha(color.getAlpha() / 2);
 		for(int i = 0; i < soulCount; i++){
-			souls.add(new Soul(position, this));	
+			souls.add(new Soul(16, position, this));	
 		}
 		setPersuasiveness(persuasiveness);
 		setControls(controls);
 		trail = new Trail(this);
-		territory = new Territory(TERRITORY_RADIUS, this);
+		territory = new Territory(16 + Game.TERRITORY_RADIUS, this);
 	}
 	
 	public Shepherd(){
@@ -54,12 +54,23 @@ public class Shepherd extends MovablePolygon implements Controllable{
 		this.persuasiveness = persuasiveness;
 	}
 	
+	public float getRadius(){
+		return radius;
+	}
+	
+	public void setRadius(float radius){
+		this.radius = radius;
+		setPoints(FirstPolygon.radiusToPoints(radius, 16));
+		trail = new Trail(this);
+		territory = new Territory((int)radius + Game.TERRITORY_RADIUS, this);
+	}
+	
 	public boolean convertSoul(Soul soul, ArrayList<Soul> list){
 		if(!list.contains(soul)){
 			return false;
 		}
 		if(soul.isLost() && soul.getInfluence() >= Soul.MAX_INFLUENCE){
-			souls.add(new Soul(soul.getPosition(), this));
+			souls.add(new Soul(soul.getRadius(), soul.getPosition(), this));
 			list.remove(soul);
 			return true;
 		}
@@ -80,7 +91,7 @@ public class Shepherd extends MovablePolygon implements Controllable{
 	
 	public boolean isInTerritory(Point other){
 		float distance = (float)getPosition().distanceTo(other);
-		if(distance < TERRITORY_RADIUS){
+		if(distance < radius + Game.TERRITORY_RADIUS){
 			return true;
 		}
 		return false;
