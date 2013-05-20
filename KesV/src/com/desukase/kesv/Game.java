@@ -158,8 +158,8 @@ public class Game{
 		arrow.update(delta);
 		shepherd.update(delta);
 		foreground.update(delta);
-		if(souls.size() > 0){
-//			shepherd.move(direction, delta);
+		if(souls.size() > 0 && Keyboard.isKeyDown(Keyboard.KEY_SPACE)){
+			shepherd.move(direction, delta);
 		}
 	}
 	
