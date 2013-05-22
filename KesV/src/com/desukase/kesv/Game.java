@@ -16,7 +16,6 @@ import com.desukase.engine.Toggle;
 import com.desukase.engine.polygon.FirstPolygon;
 
 public class Game{
-	//TODO: MAKE BIGGER SOULS DROP SOULS
 	
 	private ArrayList<Soul> souls = new ArrayList<Soul>();
 	private ArrayList<Explosion> explosions = new ArrayList<Explosion>();
@@ -28,10 +27,15 @@ public class Game{
 	private Toggle fullscreen = new Toggle(wasFullscreen);
 	private Timer influenceTimer = new Timer();
 	private Bar soulGet;
-	private int[] soulCounts = new int[MAX_SOUL_SIZE / 32];
+	private int soulCount = 0;
 	public static Random random = new Random("uwotm8".hashCode());
-	public static final int MAX_SOUL_SIZE = 256;
+	public static final int START_SOUL_SIZE = 32;
+	public static final int SAME_SOUL_MAX = 16;
 	public static final int TERRITORY_RADIUS = 96;
+	public static final Color FOUND_MINIMUM = new Color(0.75f, 0.75f, 0.0f, 0.5f);
+	public static final Color FOUND_MAXIMUM = new Color(1.5f, 1.5f, 1.0f, 1.0f);
+	public static final Color BACKGROUND = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+	public static final Color FOREGROUND = new Color(1.0f, 0.8f, 0.4f, 0.5f);
 	
 	public Game(DataSet dataSet){
 		GameDisplay.setFullscreen(wasFullscreen);
@@ -45,19 +49,9 @@ public class Game{
 	
 	public void reset(){
 		souls.clear();
-		souls.add(new Soul(16, new Point(random.nextInt(2048) - 1024, random.nextInt(2048) - 1024), FirstPolygon.EMPTY));
-		soulCounts[0] = 1;
-		for(int i = 1; i < MAX_SOUL_SIZE; i++){
-			soulCounts[(i / 32)]++;
-			double direction = random.nextDouble() * Math.PI * 2;
-			souls.add(
-				new Soul(
-					16 + (i / 32) * 16.0f,
-					Point.add(
-						souls.get(i - 1).getPosition(),
-						new Point(256 * (float)Math.cos(direction), 256 * (float)Math.sin(direction))),
-					FirstPolygon.EMPTY));
-		}
+//		souls.add(new Soul(16, new Point(random.nextInt(2048) - 1024, random.nextInt(2048) - 1024), FirstPolygon.EMPTY));
+//		generateSouls(16);
+		generateSouls(32);
 		shepherd = new Shepherd();
 		arrow = new FirstPolygon(FirstPolygon.radiusToPoints(32, 3), 0, new Point(0, 0), new Color(shepherd.getColor()));
 	}
@@ -113,15 +107,18 @@ public class Game{
 					shepherd.applyInfluence(soul);
 					float radius = soul.getRadius();
 					if(shepherd.convertSoul(soul, souls)){
-						int index = (int)((radius - 16) / 16.0);
-						soulCounts[index]--;
-						if(shepherd.getRadius() == radius && soulCounts[index] <= 8){
-							shepherd.setRadius(radius + 16);
+						if(radius == shepherd.getRadius()){
+							soulCount++;
 						}
 						explosions.add(
 							new Explosion(soul.getPosition(), 32,
-								(int)shepherd.getRadius() * 2,
-								(int)shepherd.getRadius() * 4));
+								(int)shepherd.getRadius() * 2, (int)shepherd.getRadius() * 4,
+								FOUND_MINIMUM, FOUND_MAXIMUM));
+						if(shepherd.getRadius() == radius && soulCount >= SAME_SOUL_MAX){
+							soulCount = 0;
+							shepherd.setRadius(radius + 16);
+							generateSouls(shepherd.getRadius());
+						}
 						break;
 					}
 				}
@@ -131,10 +128,10 @@ public class Game{
 		background.setPosition(FirstPolygon.getScreenCenter());
 		foreground.setPosition(background.getPosition());
 		soulGet.setPosition(new Point(
-				background.getPosition().x,
-				background.getPosition().y -
-					(Display.getHeight() / 2) / FirstPolygon.getRenderScale().y + 32 / FirstPolygon.getRenderScale().y));
-		soulGet.setValue(((float)MAX_SOUL_SIZE - (float)souls.size()) / (float)MAX_SOUL_SIZE);
+			background.getPosition().x,
+			background.getPosition().y -
+				(Display.getHeight() / 2) / FirstPolygon.getRenderScale().y + 32 / FirstPolygon.getRenderScale().y));
+		soulGet.setValue(soulCount / (float)SAME_SOUL_MAX);
 	}
 	
 	public void updatePolygons(){
@@ -150,7 +147,7 @@ public class Game{
 				shortest = distance;
 				soulIndex = souls.indexOf(soul);
 			}
-			if(distance > TERRITORY_RADIUS * 100){
+			if(distance > TERRITORY_RADIUS * 96){
 				soul.setDirection(soul.getPosition().directionTo(shepherd.getPosition()));
 			}
 		}
@@ -183,13 +180,9 @@ public class Game{
 //					Display.getWidth(), Display.getHeight()),
 					Display.getWidth() * 2 / FirstPolygon.getRenderScale().x,
 					Display.getHeight() * 2 / FirstPolygon.getRenderScale().y),
-				0, FirstPolygon.getScreenCenter(),
-				new Color(1, 1, 1, 1));
+				0, FirstPolygon.getScreenCenter(), BACKGROUND);
 		foreground =
-			new FirstPolygon(
-				background.getPoints(),
-				0, background.getPosition(),
-				new Color(1.0f, 0.8f, 0.4f, 0.5f));
+			new FirstPolygon(background.getPoints(), 0, background.getPosition(), FOREGROUND);
 		Color backColor = new Color(shepherd.getColor());
 		backColor.setAlpha(shepherd.getColor().getAlpha() / 2);
 		soulGet = new Bar(
@@ -198,7 +191,33 @@ public class Game{
 				background.getPosition().x,
 				background.getPosition().y -
 					(Display.getHeight() / 2) / FirstPolygon.getRenderScale().y + 32 / FirstPolygon.getRenderScale().y),
-				((float)MAX_SOUL_SIZE - (float)souls.size()) / (float)MAX_SOUL_SIZE, backColor, backColor);
+				(float)soulCount / (float)SAME_SOUL_MAX, backColor, backColor);
+	}
+	
+	private void generateSouls(float radius){
+		for(int i = 0; i < SAME_SOUL_MAX; i++){
+			double direction = random.nextDouble() * Math.PI * 2;
+			souls.add(
+				new Soul(
+					radius,
+					Point.add(
+						(souls.size() > 0) ? (souls.get(souls.size() - 1).getPosition()) : (shepherd.getPosition()),
+						new Point(
+							256 * (radius / 16) * (float)Math.cos(direction),
+							256 * (radius / 16) * (float)Math.sin(direction))),
+					FirstPolygon.EMPTY));
+		}
+	}
+	
+	public static Color generateFoundColor(){
+		return Color.randomColor(random, FOUND_MINIMUM, FOUND_MAXIMUM);
+	}
+	
+	public static Color generateLostColor(){
+		float value = random.nextFloat() - 0.25f;
+		return new Color(
+			value, value, value,
+			random.nextFloat() / 4 + 0.5f);
 	}
 	
 }

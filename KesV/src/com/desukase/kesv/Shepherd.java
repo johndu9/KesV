@@ -20,7 +20,7 @@ public class Shepherd extends MovablePolygon implements Controllable{
 	private static Random random = Game.random;
 	private ArrayList<Soul> souls = new ArrayList<Soul>();
 	private int persuasiveness;
-	private float radius = 16;
+	private float radius = 32;
 	private Trail trail;
 	private Territory territory;
 	
@@ -30,7 +30,7 @@ public class Shepherd extends MovablePolygon implements Controllable{
 //	private static final Color OTHER = new Color(0.0f, 1.0f, 1.0f, 0.75f);
 	
 	public Shepherd(Point position, int speed, int persuasiveness, int soulCount, Color color, Controls controls) {
-		super(FirstPolygon.radiusToPoints(16, 16), 0, position, color, speed, Math.PI * 4);
+		super(FirstPolygon.radiusToPoints(32, 16), 0, position, color, speed, Math.PI * 4);
 		Color influenceColor = new Color(color);
 		influenceColor.setAlpha(color.getAlpha() / 2);
 		for(int i = 0; i < soulCount; i++){
@@ -43,7 +43,7 @@ public class Shepherd extends MovablePolygon implements Controllable{
 	}
 	
 	public Shepherd(){
-		this(new Point(0, 0), 800, 10, 0, CHOSEN, Controls.WASD_MOVEMENT);
+		this(new Point(0, 0), 1600, 10, 0, CHOSEN, Controls.WASD_MOVEMENT);
 	}
 	
 	public int getPersuasiveness(){

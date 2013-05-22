@@ -26,14 +26,19 @@ public class Trail{
 			counter = (counter + 1) % (trail.length);
 			trail[counter].setPosition(leader.getPosition());
 			trail[counter].setColor(new Color(color));
-//			trail[counter].getColor().setAlpha(leader.getColor().getAlpha() / 2);
 		}
 		for(FirstPolygon polygon : trail){
-//			if(fadeTimer.getDelay(50)){
-				polygon.getColor().setAlpha(polygon.getColor().getAlpha() - 0.01f);
-//			}
+			polygon.getColor().setAlpha(polygon.getColor().getAlpha() - 0.01f);
 			polygon.update(delta);
 		}
+	}
+	
+	public Color getColor(){
+		return color;
+	}
+	
+	public void setColor(Color color){
+		this.color = color;
 	}
 	
 }

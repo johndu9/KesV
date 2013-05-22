@@ -13,11 +13,11 @@ public class Explosion{
 	private static Random random = Game.random;
 	private Point origin;
 	
-	public Explosion(Point point, int polygonCount, int minSize, int maxSize){
+	public Explosion(Point point, int polygonCount, int minSize, int maxSize, Color minimum, Color maximum){
 		explosion = new MovingPolygon[polygonCount];
 		for(int i = 0; i < polygonCount; i++){
 			int explosionSize = random.nextInt(maxSize - minSize) + minSize;
-			Color color = Soul.generateFoundColor();
+			Color color = Color.randomColor(random, minimum, maximum);
 			color.setAlpha(color.getAlpha() + 0.25f);
 			explosion[i] = 
 				new MovingPolygon(

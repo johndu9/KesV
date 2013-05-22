@@ -23,17 +23,25 @@ public class Soul extends MovablePolygon{
 			FirstPolygon.radiusToPoints(radius, 16),
 			random.nextDouble() * Math.PI * 2,
 			point,
-			generateFoundColor(),
-			400 + random.nextInt(300), 0);
+			Color.EMPTY, 0, 0);
 		setLeader(leader);
+		float speed;
+		if(leader.equals(FirstPolygon.EMPTY)){
+			speed = ((radius / 8) * 100 + random.nextInt(100));
+			speed = (speed > 1600) ? (1600) : (speed);
+		}else{
+			speed = (512 + random.nextInt(512 + 256));
+		}
+		setSpeed(speed);
 		if(isLost()){
-			setLost();
+			setColor(Game.generateLostColor());
 			setInfluence(0);
 		}else{
+			setColor(Game.generateFoundColor());
 			setInfluence(MAX_INFLUENCE);
 		}
 		this.radius = radius;
-		trail = new Trail(this);
+		setTrail();
 		territory = new Territory(getTerritoryRadius(), this);
 	}
 	
@@ -75,6 +83,14 @@ public class Soul extends MovablePolygon{
 		this.leader = leader;
 	}
 	
+	public Trail getTrail(){
+		return trail;
+	}
+	
+	public void setTrail(){
+		trail = new Trail(this);
+	}
+	
 	public int getInfluence(){
 		return influence;
 	}
@@ -89,39 +105,6 @@ public class Soul extends MovablePolygon{
 	
 	public int getTerritoryRadius(){
 		return (int)radius + Game.TERRITORY_RADIUS / 2;
-	}
-	
-	public void setFound(){
-		setSpeed(getSpeed() + 350);
-		setColor(generateFoundColor());
-	}
-	
-	public void setLost(){
-		setSpeed(getSpeed() - 350);
-		setColor(generateLostColor());
-	}
-	
-	public static Color generateFoundColor(){
-		return new Color(
-			random.nextFloat() + 0.75f,
-			random.nextFloat() + 0.75f,
-			random.nextFloat(),
-			random.nextFloat() / 2 + 0.5f);
-	}
-	
-	public static Color generateOtherColor(){
-		return new Color(
-			random.nextFloat(),
-			random.nextFloat() + 0.75f,
-			random.nextFloat() + 0.75f,
-			random.nextFloat() / 2 + 0.5f);
-	}
-	
-	public static Color generateLostColor(){
-		float value = random.nextFloat() - 0.25f;
-		return new Color(
-			value, value, value,
-			random.nextFloat() / 4 + 0.5f);
 	}
 	
 	public boolean isLost(){

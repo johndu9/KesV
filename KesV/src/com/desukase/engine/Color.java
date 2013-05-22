@@ -1,5 +1,7 @@
 package com.desukase.engine;
 
+import java.util.Random;
+
 /**
  * Simple value storage, used as color
  * @author John Du
@@ -17,6 +19,9 @@ public class Color{
 	public static final int BLUE = 2;
 	/**	Alpha index */
 	public static final int ALPHA = 3;
+	
+	/** Invisible black color */
+	public static final Color EMPTY = new Color(0.0f, 0.0f, 0.0f, 0.0f);
 	
 	/**
 	 * Constructor, makes a color
@@ -98,6 +103,21 @@ public class Color{
 	 */
 	public static Color subtractColors(Color color1, Color color2){
 		return addColors(color1, color2, color1.getAlpha() - color2.getAlpha());
+	}
+	
+	/**
+	 * Generates a random color "between" two colors
+	 * @param random Random number generator
+	 * @param minimum "Minimum" color, used as floor
+	 * @param maximum "Maximum" color, used as ceiling
+	 * @return Color between minimum and maximum
+	 */
+	public static Color randomColor(Random random, Color minimum, Color maximum){
+		float values[] = new float[4];
+		for(int i = 0; i < values.length; i++){
+			values[i] = minimum.getValue(i) + (maximum.getValue(i) - minimum.getValue(i)) * random.nextFloat();
+		}
+		return new Color(values);
 	}
 
 	/**
