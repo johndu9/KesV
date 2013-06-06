@@ -30,6 +30,7 @@ public class PreloadText{
 				polygons.addAll(Text.placeText(reader.nextLine(), letterSize, column, row + length));
 				length++;
 			}
+			reader.close();
 		}catch(Exception e){
 			e.printStackTrace();
 		}

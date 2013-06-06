@@ -55,7 +55,7 @@ public class FirstPolygon{
 		(float)Math.sqrt(Math.pow(Display.getWidth(), 2) + Math.pow(Display.getHeight(), 2));
 
 	/**
-	 * Constructor, makes a movable polygon
+	 * Constructor, makes a polygon
 	 * @param points Points that make up the hitbox
 	 * @param direction Direction you want it to point
 	 * @param position Wherever you want it to be
@@ -70,6 +70,19 @@ public class FirstPolygon{
 		origin = new Point(position);
 	}
 	
+	/**
+	 * Constructor, copies a polygon
+	 * @param polygon Polygon to copy
+	 */
+	public FirstPolygon(FirstPolygon polygon) {
+		this(polygon.points, polygon.direction, new Point(polygon.position), new Color(polygon.color));
+		Point[] newPoints = new Point[polygon.points.length];
+		for(int i = 0; i < newPoints.length; i++){
+			newPoints[i] = new Point(polygon.points[i]);
+		}
+		setPoints(newPoints);
+	}
+
 	/**
 	 * @param x The x coordinate
 	 * @param y The y coordinate
@@ -215,6 +228,14 @@ public class FirstPolygon{
 		this.color = color;
 	}
 	
+	public void scale(float scale){
+		Point[] newPoints = new Point[points.length];
+		for(int i = 0; i < points.length; i++){
+			newPoints[i] = points[i].scalePoint(scale, scale);
+		}
+		setPoints(newPoints);
+	}
+	
 	/**
 	 * Sets the hitbox automatically based on its position in the world
 	 */
@@ -354,6 +375,14 @@ public class FirstPolygon{
 	public static void setRenderScale(float x, float y){
 		renderScale = new Point(x, y);
 	}
+
+	/**
+	 * Sets the scale applied to rendering
+	 * @param scale The new scale
+	 */
+	public static void setRenderScale(float scale){
+		renderScale = new Point(scale, scale);
+	}
 	
 	/**
 	 * @return The point relative to which everything is rendered
@@ -429,12 +458,20 @@ public class FirstPolygon{
 		GL11.glPopMatrix();
 	}
 	
+	/**
+	 * @return The point at the center of the screen
+	 */
 	public static Point getScreenCenter(){
 		return Point.subtract(
 			new Point(Display.getWidth() / (2 * renderScale.x),Display.getHeight() / (2 * renderScale.y)),
 			renderPosition);
 	}
 	
+	/**
+	 * Scrolls the render position to a given point at a given speed
+	 * @param point Point to scroll to
+	 * @param speed Weird constant number for scrolling
+	 */
 	public static void scrollRenderPosition(Point point, double speed){
 		Point oldPos = FirstPolygon.getRenderPosition();
 		double direction = oldPos.directionTo(point);
@@ -445,6 +482,10 @@ public class FirstPolygon{
 		FirstPolygon.setRenderPosition(newPos);
 	}
 	
+	/**
+	 * Centers the screen on a polygon
+	 * @param polygon Polygon to center on
+	 */
 	public static void centerOnPolygon(FirstPolygon polygon){
 		setRenderPosition(
 			Point.subtract(
@@ -453,6 +494,11 @@ public class FirstPolygon{
 			);
 	}
 	
+	/**
+	 * Scrolls ("soft center") to a polygon
+	 * @param polygon Polygon to scroll to
+	 * @param speed Weird constant number for scrolling
+	 */
 	public static void softCenterOnPolygon(FirstPolygon polygon, double speed){
 		scrollRenderPosition(
 			Point.subtract(
@@ -461,6 +507,11 @@ public class FirstPolygon{
 			);
 	}
 	
+	/**
+	 * Zooms; decreases/increases the render scale
+	 * @param in Whether we want to zoom in or out
+	 * @param speed Speed at which we zoom
+	 */
 	public static void zoom(boolean in, double speed){
 		int direction = (in) ? (1) : (-1);
 		FirstPolygon.getRenderScale().x =

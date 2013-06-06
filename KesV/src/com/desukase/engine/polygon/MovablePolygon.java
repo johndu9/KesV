@@ -77,17 +77,11 @@ public class MovablePolygon extends FirstPolygon{
 	}
 	
 	/**
-	 * Freezes the polygon
+	 * Sets whether or not the polygon is frozen
+	 * @param frozen Whether the polygon is frozen
 	 */
-	public void freeze(){
-		frozen = true;
-	}
-	
-	/**
-	 * Unfreezes the polygon
-	 */
-	public void unfreeze(){
-		frozen = false;
+	public void setFrozen(boolean frozen){
+		this.frozen = frozen;
 	}
 	
 	/**

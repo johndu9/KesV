@@ -12,6 +12,7 @@ public class Explosion{
 	private MovingPolygon[] explosion;
 	private static Random random = Game.random;
 	private Point origin;
+	private boolean frozen = false;
 	
 	public Explosion(Point point, int polygonCount, int minSize, int maxSize, Color minimum, Color maximum){
 		explosion = new MovingPolygon[polygonCount];
@@ -34,7 +35,9 @@ public class Explosion{
 	public void update(int delta){
 		for(MovingPolygon polygon : explosion){
 			polygon.update(delta);
-			polygon.getColor().setAlpha(polygon.getColor().getAlpha() - 0.001f * (float) delta);
+			if(!frozen){
+				polygon.getColor().setAlpha(polygon.getColor().getAlpha() - 0.001f * (float) delta);
+			}
 		}
 	}
 	
@@ -58,6 +61,13 @@ public class Explosion{
 	
 	public Point getOrigin(){
 		return origin;
+	}
+	
+	public void setFrozen(boolean frozen){
+		this.frozen = frozen;
+		for(MovingPolygon polygon : explosion){
+			polygon.setFrozen(frozen);
+		}
 	}
 	
 }

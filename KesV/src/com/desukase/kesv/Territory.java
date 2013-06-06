@@ -7,11 +7,13 @@ import com.desukase.engine.polygon.MovablePolygon;
 public class Territory extends MovablePolygon{
 	
 	private FirstPolygon leader;
+	private int radius;
 	
 	public Territory(int radius, FirstPolygon leader){
 		super(FirstPolygon.radiusToPoints(radius, 16), 0, leader.getPosition(), new Color(0, 0, 0, 0), 0, Math.PI * 4);
 		setColor(new Color(leader.getColor()));
 		getColor().setAlpha(getColor().getAlpha() / 2);
+		this.radius = radius;
 		this.leader = leader;
 	}
 	
@@ -19,6 +21,10 @@ public class Territory extends MovablePolygon{
 		setPosition(leader.getPosition());
 		super.update(delta);
 		turn(true, delta);
+	}
+	
+	public int getRadius(){
+		return radius;
 	}
 	
 }

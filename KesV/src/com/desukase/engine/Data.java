@@ -23,7 +23,7 @@ public class Data{
 	/** Index of the value of the data */
 	public static final int VALUE = 1;
 	/** File separator */
-	public static final String SEP = "/";//System.getProperty("file.separator");
+	public static final String SEP = System.getProperty("file.separator");
 	/** Directory path */
 	public static final String DIR_PATH = System.getProperty("user.dir") + SEP;
 	/** Separates the name from the value */
@@ -264,6 +264,7 @@ public class Data{
 				writer.newLine();
 			}
 		}
+		reader.close();
 		writer.close();
 	}
 	

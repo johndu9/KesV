@@ -1,1 +1,17 @@
 //:Settings file!
+windowed:false
+frameCap:80
+masterVolume:1.0
+up:W
+left:A
+down:S
+right:D
+pull:MINUS
+push:EQUALS
+follow:SPACE
+zoomIn:LBRACKET
+zoomOut:RBRACKET
+zoomDefault:BACKSLASH
+fullscreen:F11
+pause:ESCAPE
+reset:0

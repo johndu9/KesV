@@ -10,7 +10,7 @@ import com.desukase.engine.polygon.MovablePolygon;
 public class Soul extends MovablePolygon{
 	
 	private static Random random = Game.random;
-	private FirstPolygon leader;
+	private Shepherd shepherd;
 	private Trail trail;
 	private Territory territory;
 	private int influence;
@@ -18,15 +18,15 @@ public class Soul extends MovablePolygon{
 	
 	public static final int MAX_INFLUENCE = 100;
 	
-	public Soul(float radius, Point point, FirstPolygon leader){
+	public Soul(float radius, Point point, Shepherd shepherd){
 		super(
 			FirstPolygon.radiusToPoints(radius, 16),
 			random.nextDouble() * Math.PI * 2,
 			point,
 			Color.EMPTY, 0, 0);
-		setLeader(leader);
+		setLeader(shepherd);
 		float speed;
-		if(leader.equals(FirstPolygon.EMPTY)){
+		if(shepherd.equals(Shepherd.LOST)){
 			speed = ((radius / 8) * 100 + random.nextInt(100));
 			speed = (speed > 1600) ? (1600) : (speed);
 		}else{
@@ -51,16 +51,16 @@ public class Soul extends MovablePolygon{
 			territory.update(delta);
 		}
 		super.update(delta);
-		Point leaderPosition = leader.getPosition();
-		double distanceToLeader = getPosition().distanceTo(leaderPosition);
-		double directionToLeader = getPosition().directionTo(leaderPosition);
+		Point shepherdPosition = shepherd.getPosition();
+		double distanceToShepherd = getPosition().distanceTo(shepherdPosition);
+		double directionToShepherd = getPosition().directionTo(shepherdPosition);
 		double directionIncrement = random.nextDouble() * Math.PI / 16.0 - Math.PI / 32.0;
 		if(
 			!isLost() &&
-			distanceToLeader > getTerritoryRadius() + random.nextInt(100) &&
-			(getDirection() < directionToLeader - Math.PI / 4 ||
-			getDirection() > directionToLeader + Math.PI / 4)){
-			setDirection(directionToLeader + directionIncrement);
+			distanceToShepherd > shepherd.getLeash()&&
+			(getDirection() < directionToShepherd - Math.PI / 4 ||
+			getDirection() > directionToShepherd + Math.PI / 4)){
+			setDirection(directionToShepherd + directionIncrement);
 		}else{
 			setDirection(getDirection() + directionIncrement);
 		}
@@ -75,12 +75,12 @@ public class Soul extends MovablePolygon{
 		return false;
 	}
 	
-	public FirstPolygon getLeader(){
-		return leader;
+	public Shepherd getLeader(){
+		return shepherd;
 	}
 	
-	public void setLeader(FirstPolygon leader){
-		this.leader = leader;
+	public void setLeader(Shepherd shepherd){
+		this.shepherd = shepherd;
 	}
 	
 	public Trail getTrail(){
@@ -108,7 +108,12 @@ public class Soul extends MovablePolygon{
 	}
 	
 	public boolean isLost(){
-		return leader.equals(FirstPolygon.EMPTY);
+		return shepherd.equals(Shepherd.LOST);
+	}
+	
+	public void setFrozen(boolean frozen){
+		super.setFrozen(frozen);
+		trail.setFrozen(frozen);
 	}
 	
 }

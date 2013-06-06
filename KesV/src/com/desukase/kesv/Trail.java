@@ -10,6 +10,7 @@ public class Trail{
 	private FirstPolygon leader;
 	private Color color;
 	private int counter = 0;
+	private boolean frozen = false;;
 	private Timer moveTimer = new Timer();
 	
 	public Trail(FirstPolygon leader){
@@ -22,13 +23,15 @@ public class Trail{
 	}
 	
 	public void update(int delta){
-		if(moveTimer.getDelay(50)){
+		if(!frozen && moveTimer.getDelay(100)){
 			counter = (counter + 1) % (trail.length);
 			trail[counter].setPosition(leader.getPosition());
 			trail[counter].setColor(new Color(color));
 		}
 		for(FirstPolygon polygon : trail){
-			polygon.getColor().setAlpha(polygon.getColor().getAlpha() - 0.01f);
+			if(!frozen){
+				polygon.getColor().setAlpha(polygon.getColor().getAlpha() - 0.01f);
+			}
 			polygon.update(delta);
 		}
 	}
@@ -39,6 +42,10 @@ public class Trail{
 	
 	public void setColor(Color color){
 		this.color = color;
+	}
+	
+	public void setFrozen(boolean frozen){
+		this.frozen = frozen;
 	}
 	
 }

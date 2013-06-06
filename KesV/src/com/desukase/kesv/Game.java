@@ -3,32 +3,40 @@ package com.desukase.kesv;
 import java.util.ArrayList;
 import java.util.Random;
 
-import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 
 import com.desukase.engine.Bar;
 import com.desukase.engine.Color;
+import com.desukase.engine.Controls;
 import com.desukase.engine.DataSet;
 import com.desukase.engine.GameDisplay;
 import com.desukase.engine.Point;
+import com.desukase.engine.Sound;
 import com.desukase.engine.Timer;
 import com.desukase.engine.Toggle;
 import com.desukase.engine.polygon.FirstPolygon;
 
 public class Game{
-	
+
 	private ArrayList<Soul> souls = new ArrayList<Soul>();
 	private ArrayList<Explosion> explosions = new ArrayList<Explosion>();
 	private FirstPolygon background;
 	private FirstPolygon foreground;
-	private Shepherd shepherd = new Shepherd();
+	private Shepherd shepherd;
+	private Controls shepherdControls;
 	private FirstPolygon arrow;
 	private boolean wasFullscreen = true;
 	private Toggle fullscreen = new Toggle(wasFullscreen);
+	private boolean wasPaused = false;
+	private Toggle paused = new Toggle(wasPaused);
 	private Timer influenceTimer = new Timer();
 	private Bar soulGet;
-	private int soulCount = 0;
+	private int soulCount;
+	private Sound music = new Sound("Wisps_of_Whorls.ogg", true, true, false);
+	private Sound conversion = new Sound("Conversion.ogg", false, false, false);
+	private Controls gameControls;
 	public static Random random = new Random("uwotm8".hashCode());
+	private static final float DEFAULT_ZOOM = 0.25f;
 	public static final int START_SOUL_SIZE = 32;
 	public static final int SAME_SOUL_MAX = 16;
 	public static final int TERRITORY_RADIUS = 96;
@@ -36,77 +44,102 @@ public class Game{
 	public static final Color FOUND_MAXIMUM = new Color(1.5f, 1.5f, 1.0f, 1.0f);
 	public static final Color BACKGROUND = new Color(1.0f, 1.0f, 1.0f, 1.0f);
 	public static final Color FOREGROUND = new Color(1.0f, 0.8f, 0.4f, 0.5f);
+	private static final int FOLLOW = 0;
+	private static final int ZOOM_IN = 1;
+	private static final int ZOOM_OUT = 2;
+	private static final int ZOOM_DEFAULT = 3;
+	private static final int FULLSCREEN = 4;
+	private static final int PAUSE = 5;
+	private static final int RESET = 6;
 	
 	public Game(DataSet dataSet){
+		wasFullscreen = !dataSet.getValue("windowed").equals("true");
 		GameDisplay.setFullscreen(wasFullscreen);
-		GameDisplay.frameCap = 80;
 		GameDisplay.showCursor(false);
 		GameDisplay.update();
-		FirstPolygon.setRenderScale(0.1f, 0.1f);
-		setBackground();
+		FirstPolygon.setRenderScale(DEFAULT_ZOOM);
+		shepherdControls = new Controls(new String[]{
+			dataSet.getValue("up"),
+			dataSet.getValue("left"),
+			dataSet.getValue("down"),
+			dataSet.getValue("right"),
+			dataSet.getValue("pull"),
+			dataSet.getValue("push")
+		});
+		gameControls = new Controls(new String[]{
+			dataSet.getValue("follow"),
+			dataSet.getValue("zoomIn"),
+			dataSet.getValue("zoomOut"),
+			dataSet.getValue("zoomDefault"),
+			dataSet.getValue("fullscreen"),
+			dataSet.getValue("pause"),
+			dataSet.getValue("reset"),
+		});
 		reset();
+		setBackground();
+		music.play(1.0f, 1.0f);
 	}
 	
 	public void reset(){
+		shepherd = new Shepherd(shepherdControls);
 		souls.clear();
-//		souls.add(new Soul(16, new Point(random.nextInt(2048) - 1024, random.nextInt(2048) - 1024), FirstPolygon.EMPTY));
-//		generateSouls(16);
 		generateSouls(32);
-		shepherd = new Shepherd();
-		arrow = new FirstPolygon(FirstPolygon.radiusToPoints(32, 3), 0, new Point(0, 0), new Color(shepherd.getColor()));
+		arrow = new FirstPolygon(FirstPolygon.radiusToPoints(48, 3), 0, new Point(0, 0), new Color(shepherd.getColor()));
+		soulCount = 0;
 	}
 	
 	public void update(){
+		gameControls.update();
+		wasPaused = paused.getState();
+		paused.update(gameControls.getState(PAUSE));
+		if(wasPaused != paused.getState()){
+			for(Soul soul : souls){
+				soul.setFrozen(paused.getState());
+			}
+			for(Explosion explosion : explosions){
+				explosion.setFrozen(paused.getState());
+			}
+			shepherd.setFrozen(paused.getState());
+			if(paused.getState()){
+				music.pause();
+			}else{
+				music.resume(1.0f, 1.0f);
+			}
+		}
 		wasFullscreen = fullscreen.getState();
-		fullscreen.update(Keyboard.isKeyDown(Keyboard.KEY_F11));
+		fullscreen.update(gameControls.getState(FULLSCREEN));
 		if(wasFullscreen != fullscreen.getState()){
-			wasFullscreen = fullscreen.getState();
-			GameDisplay.setFullscreen(wasFullscreen);
+			GameDisplay.setFullscreen(fullscreen.getState());
 			setBackground();
 		}
-		if(Keyboard.isKeyDown(Keyboard.KEY_0)){
+		if(gameControls.getState(RESET)){
 			reset();
 		}
-		if(Keyboard.isKeyDown(Keyboard.KEY_9)){
-			Timer.setTimerSpeed(1.0);
-		}
-		if(Keyboard.isKeyDown(Keyboard.KEY_8)){
-			FirstPolygon.setRenderScale(0.1f, 0.1f);
+		if(gameControls.getState(ZOOM_DEFAULT)){
+			FirstPolygon.setRenderScale(DEFAULT_ZOOM);
 			setBackground();
 		}
-
-		if(Keyboard.isKeyDown(Keyboard.KEY_LBRACKET) && FirstPolygon.getRenderScale().x > 0.1f){
+		if(gameControls.getState(ZOOM_OUT) && FirstPolygon.getRenderScale().x > 0.1f){
 			FirstPolygon.zoom(false, 3);
 			setBackground();
 		}else if(FirstPolygon.getRenderScale().x < 0.1f){
 			FirstPolygon.getRenderScale().x = 0.1f;
 			FirstPolygon.getRenderScale().y = 0.1f;
 		}
-		if(Keyboard.isKeyDown(Keyboard.KEY_RBRACKET) && FirstPolygon.getRenderScale().x < 1.0f){
+		if(gameControls.getState(ZOOM_IN) && FirstPolygon.getRenderScale().x < 1.0f){
 			FirstPolygon.zoom(true, 3);
 			setBackground();
 		}else if(FirstPolygon.getRenderScale().x >= 1.0f){
 			FirstPolygon.getRenderScale().x = 1.0f;
 			FirstPolygon.getRenderScale().y = 1.0f;
 		}
-		if(Keyboard.isKeyDown(Keyboard.KEY_MINUS)){
-			Timer.setTimerSpeed(Timer.getTimerSpeed() - 0.05);
-		}
-		if(Timer.getTimerSpeed() < 0.0){
-			Timer.setTimerSpeed(0.0);
-		}
-		if(Keyboard.isKeyDown(Keyboard.KEY_EQUALS)){
-			Timer.setTimerSpeed(Timer.getTimerSpeed() + 0.05);
-		}
-		if(Timer.getTimerSpeed() > 10.0){
-			Timer.setTimerSpeed(10.0);
-		}
-		if(influenceTimer.getDelay(500)){
+		if(!paused.getState() && influenceTimer.getDelay(500)){
 			for(Soul soul : souls){
 				if(soul.isLost() && soul.getRadius() <= shepherd.getRadius()){
 					shepherd.applyInfluence(soul);
 					float radius = soul.getRadius();
 					if(shepherd.convertSoul(soul, souls)){
+						conversion.play(1.0f, 0.5f);
 						if(radius == shepherd.getRadius()){
 							soulCount++;
 						}
@@ -155,7 +188,9 @@ public class Game{
 		arrow.setPosition(
 			Point.add(
 				shepherd.getPosition(),
-				new Point((float)Math.cos(direction) * 128.0f, (float)Math.sin(direction) * 128.0f)));
+				new Point(
+					(float)Math.cos(direction) * (shepherd.getRadius() + 128),
+					(float)Math.sin(direction) * (shepherd.getRadius() + 128))));
 		arrow.setDirection(direction);
 		arrow.getColor().setAlpha(((float)shortest / FirstPolygon.DISPLAY_DIAGONAL) * FirstPolygon.getRenderScale().x);
 		for(int i = 0; i < explosions.size(); i++){
@@ -168,7 +203,7 @@ public class Game{
 		arrow.update(delta);
 		shepherd.update(delta);
 		foreground.update(delta);
-		if(souls.size() > 0 && Keyboard.isKeyDown(Keyboard.KEY_SPACE)){
+		if(souls.size() > 0 && shortest >= shepherd.getRadius() * 5 && gameControls.getState(FOLLOW)){
 			shepherd.move(direction, delta);
 		}
 	}
@@ -177,21 +212,22 @@ public class Game{
 		background =
 			new FirstPolygon(
 				FirstPolygon.sizeToPoints(
-//					Display.getWidth(), Display.getHeight()),
 					Display.getWidth() * 2 / FirstPolygon.getRenderScale().x,
 					Display.getHeight() * 2 / FirstPolygon.getRenderScale().y),
 				0, FirstPolygon.getScreenCenter(), BACKGROUND);
 		foreground =
 			new FirstPolygon(background.getPoints(), 0, background.getPosition(), FOREGROUND);
-		Color backColor = new Color(shepherd.getColor());
-		backColor.setAlpha(shepherd.getColor().getAlpha() / 2);
+		Color frontColor = new Color(shepherd.getColor());
+		frontColor.setAlpha(shepherd.getColor().getAlpha() / 2);
+		Color backColor = new Color(frontColor);
+		backColor.setAlpha(frontColor.getAlpha() / 2);
 		soulGet = new Bar(
 			192 / FirstPolygon.getRenderScale().x, 32 / FirstPolygon.getRenderScale().y, 0,
 			new Point(
 				background.getPosition().x,
 				background.getPosition().y -
 					(Display.getHeight() / 2) / FirstPolygon.getRenderScale().y + 32 / FirstPolygon.getRenderScale().y),
-				(float)soulCount / (float)SAME_SOUL_MAX, backColor, backColor);
+				(float)soulCount / (float)SAME_SOUL_MAX, frontColor, backColor);
 	}
 	
 	private void generateSouls(float radius){
@@ -205,7 +241,7 @@ public class Game{
 						new Point(
 							256 * (radius / 16) * (float)Math.cos(direction),
 							256 * (radius / 16) * (float)Math.sin(direction))),
-					FirstPolygon.EMPTY));
+					Shepherd.LOST));
 		}
 	}
 	

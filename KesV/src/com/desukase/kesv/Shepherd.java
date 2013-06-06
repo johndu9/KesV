@@ -16,18 +16,20 @@ public class Shepherd extends MovablePolygon implements Controllable{
 	public static final int LEFT = 1;
 	public static final int DOWN = 2;
 	public static final int RIGHT = 3;
+	public static final int PULL = 4;
+	public static final int PUSH = 5;
 	
 	private static Random random = Game.random;
 	private ArrayList<Soul> souls = new ArrayList<Soul>();
 	private int persuasiveness;
+	private float leash;
 	private float radius = 32;
 	private Trail trail;
 	private Territory territory;
-	
 	private Controls controls;
 
 	private static final Color CHOSEN = new Color(1.0f, 1.0f, 0.0f, 0.75f);
-//	private static final Color OTHER = new Color(0.0f, 1.0f, 1.0f, 0.75f);
+	public static final Shepherd LOST = new Shepherd(new Point(0, 0), 0, 0, 0, Color.EMPTY, Controls.EMPTY);
 	
 	public Shepherd(Point position, int speed, int persuasiveness, int soulCount, Color color, Controls controls) {
 		super(FirstPolygon.radiusToPoints(32, 16), 0, position, color, speed, Math.PI * 4);
@@ -40,10 +42,11 @@ public class Shepherd extends MovablePolygon implements Controllable{
 		setControls(controls);
 		trail = new Trail(this);
 		territory = new Territory(16 + Game.TERRITORY_RADIUS, this);
+		leash = territory.getRadius();
 	}
 	
-	public Shepherd(){
-		this(new Point(0, 0), 1600, 10, 0, CHOSEN, Controls.WASD_MOVEMENT);
+	public Shepherd(Controls controls){
+		this(new Point(0, 0), 1600, 10, 4, CHOSEN, controls);
 	}
 	
 	public int getPersuasiveness(){
@@ -63,6 +66,7 @@ public class Shepherd extends MovablePolygon implements Controllable{
 		setPoints(FirstPolygon.radiusToPoints(radius, 16));
 		trail = new Trail(this);
 		territory = new Territory((int)radius + Game.TERRITORY_RADIUS, this);
+		leash = territory.getRadius();
 	}
 	
 	public boolean convertSoul(Soul soul, ArrayList<Soul> list){
@@ -119,6 +123,8 @@ public class Shepherd extends MovablePolygon implements Controllable{
 		boolean left = controls.getState(LEFT);
 		boolean down = controls.getState(DOWN);
 		boolean right = controls.getState(RIGHT);
+		boolean pull = controls.getState(PULL);
+		boolean push = controls.getState(PUSH);
 		if(up && right) move(-Math.PI / 4, delta);
 		else if(up && left) move(-Math.PI * 3 / 4, delta);
 		else if(down && left) move(Math.PI * 3 / 4, delta);
@@ -127,6 +133,15 @@ public class Shepherd extends MovablePolygon implements Controllable{
 		else if(left) move(Math.PI, delta);
 		else if(down) move(Math.PI / 2, delta);
 		else if(right) move(0, delta);
+		if(leash >= territory.getRadius() && pull && !push){
+			leash--;
+		}else if(leash <= territory.getRadius() * 2 && push && !pull){
+			leash++;
+		}
+	}
+	
+	public float getLeash(){
+		return leash;
 	}
 	
 	public ArrayList<Soul> getSouls(){
@@ -139,6 +154,14 @@ public class Shepherd extends MovablePolygon implements Controllable{
 
 	public void setControls(Controls controls) {
 		this.controls = controls;
+	}
+	
+	public void setFrozen(boolean frozen){
+		super.setFrozen(frozen);
+		for(Soul soul : souls){
+			soul.setFrozen(frozen);
+		}
+		trail.setFrozen(frozen);
 	}
 	
 }

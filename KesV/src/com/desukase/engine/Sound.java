@@ -1,12 +1,8 @@
 package com.desukase.engine;
 
-import java.io.File;
-
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.FloatControl;
+import org.newdawn.slick.openal.Audio;
+import org.newdawn.slick.openal.AudioLoader;
+import org.newdawn.slick.util.ResourceLoader;
 
 /**
  * Class used for playing and using sounds
@@ -14,67 +10,114 @@ import javax.sound.sampled.FloatControl;
  */
 public class Sound{
 	
-	/** Used for actually playing the sound */
-	private Clip clip;
-	/** Used for controlling the volume */
-    private FloatControl controller;
     /** Name of file in /res/sfx/ */
 	private String name;
-	/** Volume of sound */
-	private int volume;
-	/** Times we loop */
-	private int loops = 0;
+	/**	Whether it's music */
+	private boolean isMusic;
+	/** Whether it loops */
+	private boolean loops;
+	/** The position of the sound */
+	private float position = 0;
+	/** Used for actually playing the sound */
+	private Audio sound;
+	/** Whether it initialized properly */
+	private boolean initialized = false;
 	/** Game's master volume */
-	private static int masterVolume;
+	private static float masterVolume = 1.0f;
 	/** Non-muted master volume */
-	private static int masterVolumeStorage;
+	private static float masterVolumeStorage;
 	
 	/**
 	 * Constructor, makes a sound
 	 * @param name Name of file in /res/sfx/
+	 * @param isMusic Whether it's music
+	 * @param loops Whether it loops
+	 * @param stream Whether it streams
 	 */
-	public Sound(String name){
+	public Sound(String name, boolean isMusic, boolean loops, boolean stream){
 		setName(name);
-		if(findSound()){
-			setVolume(100);
-		}else{
+		this.isMusic = isMusic;
+		this.loops = loops;
+		initialized = findSound(stream);
+		if(!initialized){
 			System.out.println("Problem encountered initializing sound");
 		}
 	}
 	
 	/**
 	 * Plays the sound
+	 * @param pitch Pitch shift
+	 * @param gain Gain change
 	 */
-	public void play(){
-		setVolume(getVolume());
-		clip.stop();
-		clip.setMicrosecondPosition(0);
-//		clip.start();
-		clip.loop(loops);
+	public void play(float pitch, float gain){
+		if(initialized){
+			if(isMusic){
+				sound.playAsMusic(pitch, gain * masterVolume, loops);			
+			}else{
+				sound.playAsSoundEffect(pitch, gain * masterVolume, loops);
+			}	
+		}
 	}
 	
 	/**
-	 * Initializes the game's master volume
-	 * @param masterVolume Game's master volume
+	 * Pauses the sound
 	 */
-	public static void initialize(int masterVolume){
-		setMasterVolume(masterVolume);
+	public void pause(){
+		if(initialized){
+			position = sound.getPosition();
+			sound.stop();
+		}
+	}
+	
+	/**
+	 * Resumes the sound
+	 * @param pitch Pitch shift
+	 * @param gain Gain change
+	 */
+	public void resume(float pitch, float gain){
+		if(initialized){
+			play(pitch, gain);
+			sound.setPosition(position);
+		}
+	}
+	
+	/**
+	 * @return Current position of the sound
+	 */
+	public float getPosition(){
+		if(initialized){
+			return sound.getPosition();
+		}
+		return 0.0f;
+	}
+	
+	/**
+	 * Sets the position in the sound
+	 * @param seconds Position of playback
+	 */
+	public void setPosition(float seconds){
+		if(initialized){
+			sound.setPosition(seconds);
+		}
 	}
 	
 	/**
 	 * Tries to look for the sound
+	 * @param stream Whether we want to stream it
 	 * @return True if created properly, false otherwise
 	 */
-	private boolean findSound(){
+	private boolean findSound(boolean stream){
         try{
-			AudioInputStream stream = AudioSystem.getAudioInputStream(
-				new File(Data.DIR_PATH + "res" + Data.SEP + "sfx" + Data.SEP + getName() + ".wav"));
-			clip = (Clip)AudioSystem.getLine(new DataLine.Info(Clip.class, stream.getFormat()));
-			clip.open(stream);
-	        controller = (FloatControl)clip.getControl(FloatControl.Type.MASTER_GAIN);
+        	String type = name.substring(name.length() - 3).toUpperCase();
+        	String path = Data.DIR_PATH + "res" + Data.SEP + "sfx" + Data.SEP + name;
+        	if(stream){
+        		sound = AudioLoader.getStreamingAudio(type, ResourceLoader.getResource(path));
+        	}else{
+        		sound = AudioLoader.getAudio(type, ResourceLoader.getResourceAsStream(path));
+        	}
 		}catch(Exception e){
 			e.printStackTrace();
-			return false;	
+			return false;
 		}
 		return true;
 	}
@@ -95,50 +138,23 @@ public class Sound{
 	}
 	
 	/**
-	 * @return Volume of sound in range [0, 100]
+	 * @return Game's master volume in range [0.0f, 1.0f]
 	 */
-	public int getVolume(){
-		return volume;
-	}
-	
-	/**
-	 * Sets the volume of sound in range [0, 100]
-	 * @param volume New volume
-	 */
-	public void setVolume(int volume){
-		float newVol =
-			((float)(volume * masterVolume) / 10000) * (controller.getMaximum() -
-				controller.getMinimum()) + controller.getMinimum();
-		if(newVol >= controller.getMinimum() && newVol <= controller.getMaximum()){
-			this.volume = volume;
-			controller.setValue(newVol);
-		}else if(newVol < controller.getMinimum()){
-			this.volume = 0;
-			controller.setValue(controller.getMinimum());
-		}else{
-			this.volume = 100;
-			controller.setValue(controller.getMaximum());
-		}
-	}
-	
-	/**
-	 * @return Game's master volume in range [0, 100]
-	 */
-	public static int getMasterVolume(){
+	public static float getMasterVolume(){
 		return masterVolume;
 	}
 	
 	/**
-	 * Sets the game's master volume in range [0, 100]
+	 * Sets the game's master volume in range [0.0f, 1.0f]
 	 * @param masterVolume New master volume
 	 */
-	public static void setMasterVolume(int masterVolume){
-		if(masterVolume <= 100 && masterVolume >= 0){
+	public static void setMasterVolume(float masterVolume){
+		if(masterVolume <= 1.0f && masterVolume >= 0.0f){
 			Sound.masterVolume = masterVolume;
-		}else if(masterVolume < 0){
-			Sound.masterVolume = 0;
+		}else if(masterVolume < 0.0f){
+			Sound.masterVolume = 0.0f;
 		}else{
-			Sound.masterVolume = 100;
+			Sound.masterVolume = 1.0f;
 		}
 		Sound.masterVolumeStorage = Sound.masterVolume;
 	}
@@ -162,21 +178,6 @@ public class Sound{
 	 */
 	public static void unmute(){
 		masterVolume = masterVolumeStorage;
-	}
-	
-	/**
-	 * @return Times the sound loops on play
-	 */
-	public int getLoops(){
-		return loops;
-	}
-	
-	/**
-	 * Sets the times the sound loops on play
-	 * @param loops Times the sound loops on play
-	 */
-	public void setLoops(int loops){
-		this.loops = loops;
 	}
 	
 }

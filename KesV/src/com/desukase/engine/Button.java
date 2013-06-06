@@ -27,8 +27,6 @@ public class Button{
 	/** Whether we can select the button */
 	private boolean selectable;
 	
-	/** The sound for selection */
-	private static Sound select;
 	/** Whether we want to show the buttons at all */
 	public static Toggle showButtons = Text.showText;
 	
@@ -47,13 +45,6 @@ public class Button{
 		setRow(row);
 		setSelectable(selectable);
 		selected = new Toggle(false);
-	}
-	
-	/**
-	 * Initializes the selection sound
-	 */
-	public static void initialize(){
-		select = new Sound("select");
 	}
 	
 	/**
@@ -92,7 +83,6 @@ public class Button{
 	public boolean confirmSelect(){
 		if(selected.getState()){
 			selected.toggle();
-			select.play();
 			return true;	
 		}
 		return false;
