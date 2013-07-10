@@ -36,7 +36,7 @@ public class Shepherd extends MovablePolygon implements Controllable{
 		Color influenceColor = new Color(color);
 		influenceColor.setAlpha(color.getAlpha() / 2);
 		for(int i = 0; i < soulCount; i++){
-			souls.add(new Soul(16, position, this));	
+			souls.add(new Soul(16, position, this));
 		}
 		setPersuasiveness(persuasiveness);
 		setControls(controls);
@@ -106,7 +106,6 @@ public class Shepherd extends MovablePolygon implements Controllable{
 		for(Soul soul : souls){
 			soul.update(delta);
 		}
-		territory.update(delta);
 		if(controls.equals(Controls.EMPTY)){
 			double directionIncrement = random.nextDouble() * Math.PI / 16.0 - Math.PI / 32.0;
 			setDirection(getDirection() + directionIncrement);
@@ -115,6 +114,7 @@ public class Shepherd extends MovablePolygon implements Controllable{
 			handleControls(delta);	
 		}
 		super.update(delta);
+		territory.update(delta);
 	}
 	
 	public void handleControls(int delta){
@@ -133,10 +133,10 @@ public class Shepherd extends MovablePolygon implements Controllable{
 		else if(left) move(Math.PI, delta);
 		else if(down) move(Math.PI / 2, delta);
 		else if(right) move(0, delta);
-		if(leash >= territory.getRadius() && pull && !push){
-			leash--;
-		}else if(leash <= territory.getRadius() * 2 && push && !pull){
-			leash++;
+		if(pull && !push){
+			leash = territory.getRadius();
+		}else if(push && !pull){
+			leash = territory.getRadius() * 4;
 		}
 	}
 	

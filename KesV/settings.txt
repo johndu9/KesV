@@ -1,7 +1,9 @@
 //:Settings file!
-windowed:false
+windowed:true
 frameCap:80
 masterVolume:1.0
+windowedWidth:1366
+windowedHeight:768
 up:W
 left:A
 down:S
@@ -9,6 +11,7 @@ right:D
 pull:MINUS
 push:EQUALS
 follow:SPACE
+toggleFollow:RETURN
 zoomIn:LBRACKET
 zoomOut:RBRACKET
 zoomDefault:BACKSLASH

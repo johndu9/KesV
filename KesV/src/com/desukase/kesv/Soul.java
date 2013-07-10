@@ -47,9 +47,6 @@ public class Soul extends MovablePolygon{
 	
 	public void update(int delta){
 		trail.update(delta);
-		if(!isLost()){
-			territory.update(delta);
-		}
 		super.update(delta);
 		Point shepherdPosition = shepherd.getPosition();
 		double distanceToShepherd = getPosition().distanceTo(shepherdPosition);
@@ -65,6 +62,7 @@ public class Soul extends MovablePolygon{
 			setDirection(getDirection() + directionIncrement);
 		}
 		move(delta);
+		territory.update(delta);
 	}
 	
 	public boolean isInTerritory(Point other){

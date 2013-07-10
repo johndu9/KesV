@@ -25,10 +25,12 @@ public class Game{
 	private Shepherd shepherd;
 	private Controls shepherdControls;
 	private FirstPolygon arrow;
+	private boolean wasReset = false;
 	private boolean wasFullscreen = true;
 	private Toggle fullscreen = new Toggle(wasFullscreen);
 	private boolean wasPaused = false;
 	private Toggle paused = new Toggle(wasPaused);
+	private Toggle followToggle = new Toggle(false);
 	private Timer influenceTimer = new Timer();
 	private Bar soulGet;
 	private int soulCount;
@@ -36,7 +38,10 @@ public class Game{
 	private Sound conversion = new Sound("Conversion.ogg", false, false, false);
 	private Controls gameControls;
 	public static Random random = new Random("uwotm8".hashCode());
+
 	private static final float DEFAULT_ZOOM = 0.25f;
+	private static final float MINIMUM_ZOOM = 0.10f;
+	
 	public static final int START_SOUL_SIZE = 32;
 	public static final int SAME_SOUL_MAX = 16;
 	public static final int TERRITORY_RADIUS = 96;
@@ -44,6 +49,7 @@ public class Game{
 	public static final Color FOUND_MAXIMUM = new Color(1.5f, 1.5f, 1.0f, 1.0f);
 	public static final Color BACKGROUND = new Color(1.0f, 1.0f, 1.0f, 1.0f);
 	public static final Color FOREGROUND = new Color(1.0f, 0.8f, 0.4f, 0.5f);
+	
 	private static final int FOLLOW = 0;
 	private static final int ZOOM_IN = 1;
 	private static final int ZOOM_OUT = 2;
@@ -51,6 +57,7 @@ public class Game{
 	private static final int FULLSCREEN = 4;
 	private static final int PAUSE = 5;
 	private static final int RESET = 6;
+	private static final int TOGGLE_FOLLOW = 7;
 	
 	public Game(DataSet dataSet){
 		wasFullscreen = !dataSet.getValue("windowed").equals("true");
@@ -74,6 +81,7 @@ public class Game{
 			dataSet.getValue("fullscreen"),
 			dataSet.getValue("pause"),
 			dataSet.getValue("reset"),
+			dataSet.getValue("toggleFollow")
 		});
 		reset();
 		setBackground();
@@ -89,8 +97,10 @@ public class Game{
 	}
 	
 	public void update(){
-		gameControls.update();
+		wasReset = gameControls.getState(RESET);
 		wasPaused = paused.getState();
+		wasFullscreen = fullscreen.getState();
+		gameControls.update();
 		paused.update(gameControls.getState(PAUSE));
 		if(wasPaused != paused.getState()){
 			for(Soul soul : souls){
@@ -106,32 +116,32 @@ public class Game{
 				music.resume(1.0f, 1.0f);
 			}
 		}
-		wasFullscreen = fullscreen.getState();
 		fullscreen.update(gameControls.getState(FULLSCREEN));
 		if(wasFullscreen != fullscreen.getState()){
 			GameDisplay.setFullscreen(fullscreen.getState());
 			setBackground();
 		}
-		if(gameControls.getState(RESET)){
+		followToggle.update(gameControls.getState(TOGGLE_FOLLOW));
+		if(!wasReset && wasReset != gameControls.getState(RESET)){
 			reset();
 		}
 		if(gameControls.getState(ZOOM_DEFAULT)){
 			FirstPolygon.setRenderScale(DEFAULT_ZOOM);
 			setBackground();
 		}
-		if(gameControls.getState(ZOOM_OUT) && FirstPolygon.getRenderScale().x > 0.1f){
+		if(gameControls.getState(ZOOM_OUT) && FirstPolygon.getRenderScale().x > MINIMUM_ZOOM){
 			FirstPolygon.zoom(false, 3);
 			setBackground();
-		}else if(FirstPolygon.getRenderScale().x < 0.1f){
-			FirstPolygon.getRenderScale().x = 0.1f;
-			FirstPolygon.getRenderScale().y = 0.1f;
+		}else if(FirstPolygon.getRenderScale().x < MINIMUM_ZOOM){
+			FirstPolygon.getRenderScale().x = MINIMUM_ZOOM;
+			FirstPolygon.getRenderScale().y = MINIMUM_ZOOM;
 		}
-		if(gameControls.getState(ZOOM_IN) && FirstPolygon.getRenderScale().x < 1.0f){
+		if(gameControls.getState(ZOOM_IN) && FirstPolygon.getRenderScale().x < DEFAULT_ZOOM){
 			FirstPolygon.zoom(true, 3);
 			setBackground();
-		}else if(FirstPolygon.getRenderScale().x >= 1.0f){
-			FirstPolygon.getRenderScale().x = 1.0f;
-			FirstPolygon.getRenderScale().y = 1.0f;
+		}else if(FirstPolygon.getRenderScale().x >= DEFAULT_ZOOM){
+			FirstPolygon.getRenderScale().x = DEFAULT_ZOOM;
+			FirstPolygon.getRenderScale().y = DEFAULT_ZOOM;
 		}
 		if(!paused.getState() && influenceTimer.getDelay(500)){
 			for(Soul soul : souls){
@@ -176,9 +186,11 @@ public class Game{
 		for(Soul soul : souls){
 			soul.update(delta);
 			double distance = shepherd.getPosition().distanceTo(soul.getPosition());
-			if(soul.getRadius() <= shepherd.getRadius() && distance < shortest){
-				shortest = distance;
-				soulIndex = souls.indexOf(soul);
+			if(soul.getRadius() == shepherd.getRadius()){
+				if(distance < shortest){
+					shortest = distance;
+					soulIndex = souls.indexOf(soul);
+				}
 			}
 			if(distance > TERRITORY_RADIUS * 96){
 				soul.setDirection(soul.getPosition().directionTo(shepherd.getPosition()));
@@ -199,13 +211,16 @@ public class Game{
 				explosions.remove(i);
 			}
 		}
+		
+		if(souls.size() > 0 &&
+			((followToggle.getState()) || (shortest >= shepherd.getRadius() * 5 && gameControls.getState(FOLLOW)))){
+			shepherd.move(direction, delta);
+		}
+		
 		soulGet.update(delta);
 		arrow.update(delta);
 		shepherd.update(delta);
 		foreground.update(delta);
-		if(souls.size() > 0 && shortest >= shepherd.getRadius() * 5 && gameControls.getState(FOLLOW)){
-			shepherd.move(direction, delta);
-		}
 	}
 	
 	private void setBackground(){
@@ -231,7 +246,7 @@ public class Game{
 	}
 	
 	private void generateSouls(float radius){
-		for(int i = 0; i < SAME_SOUL_MAX; i++){
+		for(int i = 0; i < SAME_SOUL_MAX * 2; i++){
 			double direction = random.nextDouble() * Math.PI * 2;
 			souls.add(
 				new Soul(

@@ -18,9 +18,9 @@ public class Territory extends MovablePolygon{
 	}
 	
 	public void update(int delta){
-		setPosition(leader.getPosition());
 		super.update(delta);
 		turn(true, delta);
+		setPosition(leader.getPosition());
 	}
 	
 	public int getRadius(){
