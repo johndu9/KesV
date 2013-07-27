@@ -62,11 +62,12 @@ public class Shepherd extends MovablePolygon implements Controllable{
 	}
 	
 	public void setRadius(float radius){
+		boolean leashed = leash == territory.getRadius();
 		this.radius = radius;
 		setPoints(FirstPolygon.radiusToPoints(radius, 16));
 		trail = new Trail(this);
 		territory = new Territory((int)radius + Game.TERRITORY_RADIUS, this);
-		leash = territory.getRadius();
+		leash = (leashed) ? (territory.getRadius()) : (territory.getRadius() * 4);
 	}
 	
 	public boolean convertSoul(Soul soul, ArrayList<Soul> list){

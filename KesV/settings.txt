@@ -2,8 +2,8 @@
 windowed:true
 frameCap:80
 masterVolume:1.0
-windowedWidth:1366
-windowedHeight:768
+windowedWidth:800
+windowedHeight:600
 up:W
 left:A
 down:S
@@ -12,8 +12,8 @@ pull:MINUS
 push:EQUALS
 follow:SPACE
 toggleFollow:RETURN
-zoomIn:LBRACKET
-zoomOut:RBRACKET
+zoomIn:RBRACKET
+zoomOut:LBRACKET
 zoomDefault:BACKSLASH
 fullscreen:F11
 pause:ESCAPE

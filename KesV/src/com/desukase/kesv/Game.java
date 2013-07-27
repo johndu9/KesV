@@ -3,6 +3,7 @@ package com.desukase.kesv;
 import java.util.ArrayList;
 import java.util.Random;
 
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
 import com.desukase.engine.Bar;
@@ -26,7 +27,7 @@ public class Game{
 	private Controls shepherdControls;
 	private FirstPolygon arrow;
 	private boolean wasReset = false;
-	private boolean wasFullscreen = true;
+	private boolean wasFullscreen;
 	private Toggle fullscreen = new Toggle(wasFullscreen);
 	private boolean wasPaused = false;
 	private Toggle paused = new Toggle(wasPaused);
@@ -38,6 +39,10 @@ public class Game{
 	private Sound conversion = new Sound("Conversion.ogg", false, false, false);
 	private Controls gameControls;
 	public static Random random = new Random("uwotm8".hashCode());
+	
+	private FirstPolygon resume;
+	private FirstPolygon close;
+	private GameCursor cursor = new GameCursor();
 
 	private static final float DEFAULT_ZOOM = 0.25f;
 	private static final float MINIMUM_ZOOM = 0.10f;
@@ -102,7 +107,18 @@ public class Game{
 		wasFullscreen = fullscreen.getState();
 		gameControls.update();
 		paused.update(gameControls.getState(PAUSE));
+		if(paused.getState()){
+			if(Mouse.isButtonDown(0)){
+				if(cursor.hits(resume)){
+					wasPaused = true;
+					paused.setState(false);
+				}else if(cursor.hits(close)){
+					close();
+				}
+			}
+		}
 		if(wasPaused != paused.getState()){
+			conversion.play(1.0f, 0.1f);
 			for(Soul soul : souls){
 				soul.setFrozen(paused.getState());
 			}
@@ -112,8 +128,10 @@ public class Game{
 			shepherd.setFrozen(paused.getState());
 			if(paused.getState()){
 				music.pause();
+				GameDisplay.showCursor(true);
 			}else{
 				music.resume(1.0f, 1.0f);
+				GameDisplay.showCursor(false);
 			}
 		}
 		fullscreen.update(gameControls.getState(FULLSCREEN));
@@ -220,6 +238,17 @@ public class Game{
 		soulGet.update(delta);
 		arrow.update(delta);
 		shepherd.update(delta);
+		if(paused.getState()){
+			resume.setPosition(
+				FirstPolygon.getScreenCenter().x - 192 / FirstPolygon.getRenderScale().x,
+				FirstPolygon.getScreenCenter().y);
+			resume.update(delta);
+			close.setPosition(
+				FirstPolygon.getScreenCenter().x + 192 / FirstPolygon.getRenderScale().x,
+				FirstPolygon.getScreenCenter().y);
+			close.update(delta);
+		}
+		cursor.update(delta);
 		foreground.update(delta);
 	}
 	
@@ -243,6 +272,14 @@ public class Game{
 				background.getPosition().y -
 					(Display.getHeight() / 2) / FirstPolygon.getRenderScale().y + 32 / FirstPolygon.getRenderScale().y),
 				(float)soulCount / (float)SAME_SOUL_MAX, frontColor, backColor);
+		resume =
+			new FirstPolygon(
+				FirstPolygon.radiusToPoints(64 / FirstPolygon.getRenderScale().x, 3),
+				0, FirstPolygon.getScreenCenter(), shepherd.getColor());
+		close =
+			new FirstPolygon(
+				FirstPolygon.sizeToPoints(96 / FirstPolygon.getRenderScale().x),
+				0, FirstPolygon.getScreenCenter(), shepherd.getColor());
 	}
 	
 	private void generateSouls(float radius){
@@ -258,6 +295,10 @@ public class Game{
 							256 * (radius / 16) * (float)Math.sin(direction))),
 					Shepherd.LOST));
 		}
+	}
+	
+	private void close(){
+		System.exit(0);
 	}
 	
 	public static Color generateFoundColor(){
