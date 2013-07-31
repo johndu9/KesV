@@ -16,7 +16,6 @@ follow:SPACE
 toggleFollow:RETURN
 zoomIn:RBRACKET
 zoomOut:LBRACKET
-zoomDefault:BACKSLASH
 fullscreen:F11
 pause:ESCAPE
 reset:0

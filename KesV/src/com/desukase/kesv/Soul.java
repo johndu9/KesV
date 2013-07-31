@@ -30,7 +30,7 @@ public class Soul extends MovablePolygon{
 			speed = ((radius / 8) * 100 + random.nextInt(100));
 			speed = (speed > 1600) ? (1600) : (speed);
 		}else{
-			speed = (512 + random.nextInt(512 + 256));
+			speed = (512 + random.nextInt(1024));
 		}
 		setSpeed(speed);
 		if(isLost()){

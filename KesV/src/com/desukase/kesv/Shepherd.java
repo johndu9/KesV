@@ -81,7 +81,7 @@ public class Shepherd extends MovablePolygon implements Controllable{
 			if(getColor().equals(CHOSEN)){
 				color = Game.generateFoundColor();
 			}else{
-				color = getColor();
+				color = new Color(getColor());
 				for(int i = 0; i < color.getValues().length - 1; i++){
 					color.getValues()[i] *= (0.75f + 0.5f * random.nextFloat());
 				}
@@ -177,7 +177,7 @@ public class Shepherd extends MovablePolygon implements Controllable{
 	}
 	
 	public Soul getClosestSoul(ArrayList<Soul> souls, boolean sameRadius){
-		double shortest = getPosition().distanceTo(souls.get(0).getPosition());
+		double shortest = Double.MAX_VALUE;
 		int index = 0;
 		for(int i = 0; i < souls.size(); i++){
 			double distance = getPosition().distanceTo(souls.get(i).getPosition()); 
@@ -190,14 +190,14 @@ public class Shepherd extends MovablePolygon implements Controllable{
 	}
 	
 	public static Shepherd generateHeretic(float radius, Point position){
-		Shepherd heretic = new Shepherd(position, 512 + 256 + random.nextInt(512 + 256), 5, 3, HERETIC, Controls.EMPTY);
+		Shepherd heretic = new Shepherd(position, 1600 + random.nextInt(256), 5, 3, HERETIC, Controls.EMPTY);
 		heretic.setRadius(radius);
 		heretic.leash = (heretic.territory.getRadius() * 2);
 		return heretic;
 	}
 	
 	public static Shepherd generateProphet(float radius, Point position){
-		Shepherd prophet = new Shepherd(position, 512 + 256 + random.nextInt(512 + 256), 5, 3, PROPHET, Controls.EMPTY);
+		Shepherd prophet = new Shepherd(position, 1600 + random.nextInt(256), 5, 3, PROPHET, Controls.EMPTY);
 		prophet.setRadius(radius);
 		prophet.leash = (prophet.territory.getRadius() * 2);
 		return prophet;
