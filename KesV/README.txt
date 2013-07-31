@@ -1,6 +1,8 @@
 stick around the lost souls for ~5 seconds!
 they'll join you so you can collect more lost souls faster!
-there are 16 lost souls for each size; collect them all to grow bigger and to convert more souls! 
+be careful of the red heretics; they seek to undermine your influence by gathering their own following!
+the blue prophets exist to help your following grow; each soul they convert is considered yours!
+there are 32 lost souls for each size; collect them all to grow bigger and to convert more souls! 
 
 w, a, s, d keys move you!
 - key pulls your souls closer!

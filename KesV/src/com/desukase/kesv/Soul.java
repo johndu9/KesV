@@ -18,12 +18,12 @@ public class Soul extends MovablePolygon{
 	
 	public static final int MAX_INFLUENCE = 100;
 	
-	public Soul(float radius, Point point, Shepherd shepherd){
+	public Soul(float radius, Point point, Color color, Shepherd shepherd){
 		super(
 			FirstPolygon.radiusToPoints(radius, 16),
 			random.nextDouble() * Math.PI * 2,
 			point,
-			Color.EMPTY, 0, 0);
+			color, 0, 0);
 		setLeader(shepherd);
 		float speed;
 		if(shepherd.equals(Shepherd.LOST)){
@@ -34,10 +34,8 @@ public class Soul extends MovablePolygon{
 		}
 		setSpeed(speed);
 		if(isLost()){
-			setColor(Game.generateLostColor());
 			setInfluence(0);
 		}else{
-			setColor(Game.generateFoundColor());
 			setInfluence(MAX_INFLUENCE);
 		}
 		this.radius = radius;
@@ -62,6 +60,9 @@ public class Soul extends MovablePolygon{
 			setDirection(getDirection() + directionIncrement);
 		}
 		move(delta);
+	}
+	
+	public void updateTerritory(int delta){
 		territory.update(delta);
 	}
 	

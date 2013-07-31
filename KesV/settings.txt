@@ -1,5 +1,7 @@
 //:Settings file!
 windowed:true
+enableHeretics:true
+enableProphets:true
 frameCap:80
 masterVolume:1.0
 windowedWidth:800

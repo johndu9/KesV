@@ -34,11 +34,11 @@ public class FirstPolygon{
 	private Polygon hitbox = new Polygon();
 	
 	/** Initial render scale */
-	private static final Point BASE_RENDER_SCALE = new Point(1.0f, 1.0f);
+	protected static final Point BASE_RENDER_SCALE = new Point(1.0f, 1.0f);
 	/** Scales everything rendered */
 	protected static Point renderScale = new Point(BASE_RENDER_SCALE);
 	/** Initial render position */
-	private static final Point BASE_RENDER_POSITION = new Point(0.0f, 0.0f);
+	protected static final Point BASE_RENDER_POSITION = new Point(0.0f, 0.0f);
 	/** Everything is rendered relative to this point*/
 	protected static Point renderPosition = new Point(BASE_RENDER_POSITION);
 	
