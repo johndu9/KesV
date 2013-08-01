@@ -1,20 +1,15 @@
-stick around the lost souls for ~5 seconds!
-they'll join you so you can collect more lost souls faster!
-be careful of the red heretics; they seek to undermine your influence by gathering their own following!
-the blue prophets exist to help your following grow; each soul they convert is considered yours!
-there are 32 lost souls for each size; collect them all to grow bigger and to convert more souls! 
+README
 
-w, a, s, d keys move you!
-- key pulls your souls closer!
-= key pushes your souls away!
-space key moves you closer to the nearest lost soul!
-esc key pauses!
-[ key zooms out (minimum 0.1)!
-] key zooms in (maximum 1.0)!
-\ key brings the zoom back to default!
-f11 key fullscreens!
-you can change controls in the settings.txt file!
+You are the Chosen, the soul whose goal is to show lost souls the Way.
+However, the Way is beset by the Red, heretics who convert their own souls to have them stray from the Way.
+The Blue, the Chosen's prophets, preach the word of the Way as the Chosen would, showing souls the Way.
 
-thanks to kevin macleod; that background music is his!
-thanks to everyone at slick; we're using their audio loading!
-thanks to everyone at lwjgl; this is built on their library!
+Install by dragging the KesV folder out of the .zip.
+Controls and settings can be found and edited in settings.txt
+KesV uses the WTFPL (check LICENSE.txt), so feel free to go ham.
+
+Sometimes there's news at the official site: http://desukase.wordpress.com/
+Feel free to direct questions and concerns at desukase@gmail.com
+
+Thanks to Kevin MacLeod for creating wonderful, royalty-free music!
+Thanks to LWJGL and Slick for building such nice Java libraries!

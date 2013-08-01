@@ -1,7 +1,10 @@
 //:Settings file!
 windowed:true
+enableDeath:true
 enableHeretics:true
 enableProphets:true
+refreshSeed:false
+seed:elmaldadenelcorazon
 frameCap:80
 masterVolume:1.0
 windowedWidth:800

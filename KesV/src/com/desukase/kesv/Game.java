@@ -28,6 +28,9 @@ public class Game{
 	private Shepherd shepherd;
 	private Controls shepherdControls;
 	private FirstPolygon arrow;
+	private Shepherd usurper;
+	private boolean dead = false;
+	private boolean enableDeath;
 	private boolean enableHeretics;
 	private boolean enableProphets;
 	private boolean zoomingOut = false;
@@ -42,13 +45,15 @@ public class Game{
 	private Bar hereticMeter;
 	private int shepherdSouls;
 	private int hereticSouls;
-	private int soulsLeft = 0;
 	private Sound music = new Sound("Wisps_of_Whorls.ogg", true, true, false);
 	private Sound conversion = new Sound("Conversion.ogg", false, false, false);
 	private Controls gameControls;
-	public static Random random = new Random("uwotm8".hashCode());
+	private boolean refreshSeed;
+	private String seed;
+	public static Random random;
 	
 	private FirstPolygon resume;
+	private FirstPolygon reset;
 	private FirstPolygon close;
 	private GameCursor cursor = new GameCursor();
 
@@ -76,6 +81,10 @@ public class Game{
 		GameDisplay.setFullscreen(wasFullscreen);
 		GameDisplay.showCursor(false);
 		GameDisplay.update();
+		refreshSeed = dataSet.getValue("refreshSeed").equals("true");
+		seed = dataSet.getValue("seed");
+		random = new Random(seed.hashCode());
+		enableDeath = dataSet.getValue("enableDeath").equals("true");
 		enableHeretics = dataSet.getValue("enableHeretics").equals("true");
 		enableProphets = dataSet.getValue("enableProphets").equals("true");
 		FirstPolygon.setRenderScale(MAXIMUM_ZOOM);
@@ -101,16 +110,6 @@ public class Game{
 		music.play(1.0f, 1.0f);
 	}
 	
-	public void reset(){
-		shepherd = new Shepherd(shepherdControls);
-		souls.clear();
-		heretics.clear();
-		generateSouls(START_SOUL_SIZE);
-		arrow = new FirstPolygon(FirstPolygon.radiusToPoints(48, 3), 0, new Point(0, 0), new Color(shepherd.getColor()));
-		shepherdSouls = 0;
-		hereticSouls = 0;
-	}
-	
 	public void update(){
 		wasReset = gameControls.getState(RESET);
 		wasPaused = paused.getState();
@@ -124,24 +123,18 @@ public class Game{
 					paused.setState(false);
 				}else if(cursor.hits(close)){
 					close();
+				}else if(cursor.hits(reset)){
+					reset();
+					wasPaused = true;
+					paused.setState(false);
 				}
 			}
 		}
 		if(wasPaused != paused.getState()){
 			conversion.play(1.0f, 0.1f);
-			for(Soul soul : souls){
-				soul.setFrozen(paused.getState());
+			if(!dead){
+				setFrozen(paused.getState());
 			}
-			for(Explosion explosion : explosions){
-				explosion.setFrozen(paused.getState());
-			}
-			for(Shepherd heretic : heretics){
-				heretic.setFrozen(paused.getState());
-			}
-			for(Shepherd prophet : prophets){
-				prophet.setFrozen(paused.getState());
-			}
-			shepherd.setFrozen(paused.getState());
 			if(paused.getState()){
 				music.pause();
 				GameDisplay.showCursor(true);
@@ -178,10 +171,7 @@ public class Game{
 			FirstPolygon.getRenderScale().x = MAXIMUM_ZOOM;
 			FirstPolygon.getRenderScale().y = MAXIMUM_ZOOM;
 		}
-		if(!paused.getState() && influenceTimer.getDelay(500)){
-			if(soulsLeft == 0){
-				generateSouls(shepherd.getRadius());
-			}
+		if(!paused.getState() && !dead && influenceTimer.getDelay(500)){
 			soulLoop: for(Soul soul : souls){
 				float radius = soul.getRadius();
 				for(Shepherd heretic : heretics){
@@ -189,9 +179,9 @@ public class Game{
 						heretic.applyInfluence(soul);
 						if(heretic.convertSoul(soul, souls)){
 							if(radius == shepherd.getRadius()){
+								usurper = heretic;
 								conversion.play(1.0f, 0.25f);
 								hereticSouls++;
-								soulsLeft--;
 							}
 							break soulLoop;
 						}
@@ -204,7 +194,6 @@ public class Game{
 							if(radius == shepherd.getRadius()){
 								conversion.play(1.0f, 0.5f);
 								shepherdSouls++;
-								soulsLeft--;
 							}
 							break soulLoop;
 						}
@@ -216,7 +205,6 @@ public class Game{
 						conversion.play(1.0f, 0.5f);
 						if(radius == shepherd.getRadius()){
 							shepherdSouls++;
-							soulsLeft--;
 						}
 						explosions.add(
 							new Explosion(soul.getPosition(), 32,
@@ -228,9 +216,18 @@ public class Game{
 			}
 			if(shepherdSouls >= SAME_SOUL_MAX){
 				levelUp();
+			}else if(enableDeath && hereticSouls >= SAME_SOUL_MAX){
+				dead = true;
+				shepherdSouls = 0;
+				hereticSouls = 0;
+				setFrozen(true);
 			}
 		}
-		FirstPolygon.softCenterOnPolygon(shepherd, 28.0);
+		if(!dead){
+			FirstPolygon.softCenterOnPolygon(shepherd, 28.0);
+		}else{
+			FirstPolygon.softCenterOnPolygon(usurper, 28.0);
+		}
 		background.setPosition(FirstPolygon.getScreenCenter());
 		foreground.setPosition(background.getPosition());
 		shepherdMeter.setPosition(new Point(
@@ -286,26 +283,62 @@ public class Game{
 		}
 		
 		if(souls.size() > 0 &&
-			((followToggle.getState()) || (shortest >= shepherd.getRadius() * 5 && gameControls.getState(FOLLOW)))){
+			((followToggle.getState()) || (gameControls.getState(FOLLOW)))){
 			shepherd.move(direction, delta);
 		}
 		
 		arrow.update(delta);
 		shepherd.update(delta);
 		shepherdMeter.update(delta);
-		hereticMeter.update(delta);
+		if(enableDeath && enableHeretics){
+			hereticMeter.update(delta);
+		}
 		if(paused.getState()){
-			resume.setPosition(
+			reset.setPosition(
 				FirstPolygon.getScreenCenter().x - 192 / FirstPolygon.getRenderScale().x,
+				FirstPolygon.getScreenCenter().y);
+			reset.update(delta);
+			resume.setPosition(
+				FirstPolygon.getScreenCenter().x,
 				FirstPolygon.getScreenCenter().y);
 			resume.update(delta);
 			close.setPosition(
 				FirstPolygon.getScreenCenter().x + 192 / FirstPolygon.getRenderScale().x,
 				FirstPolygon.getScreenCenter().y);
 			close.update(delta);
+			cursor.update(delta);
 		}
-		cursor.update(delta);
 		foreground.update(delta);
+	}
+	
+	public void reset(){
+		if(refreshSeed){
+			random = new Random(seed.hashCode());
+		}
+		shepherd = new Shepherd(shepherdControls);
+		souls.clear();
+		heretics.clear();
+		generateSouls(START_SOUL_SIZE);
+		arrow = new FirstPolygon(FirstPolygon.radiusToPoints(48, 3), 0, new Point(0, 0), new Color(shepherd.getColor()));
+		shepherdSouls = 0;
+		hereticSouls = 0;
+		dead = false;
+	}
+	
+	public void setFrozen(boolean frozen){
+		shepherd.setFrozen(frozen);
+		for(Shepherd heretic : heretics){
+			heretic.setFrozen(frozen);
+		}
+		for(Shepherd prophet : prophets){
+			prophet.setFrozen(frozen);
+		}
+		for(Soul soul : souls){
+			soul.setFrozen(frozen);
+		}
+		for(Explosion explosion : explosions){
+			explosion.setFrozen(paused.getState());
+		}
 	}
 	
 	private void setBackground(){
@@ -327,16 +360,22 @@ public class Game{
 				background.getPosition().y -
 					(Display.getHeight() / 2) / FirstPolygon.getRenderScale().y + 32 / FirstPolygon.getRenderScale().y),
 				(float)shepherdSouls / (float)SAME_SOUL_MAX, shepherdMeterColor, shepherdMeterBack);
-		Color hereticMeterColor = Shepherd.HERETIC;
-		Color hereticMeterBack = new Color(hereticMeterColor);
-		hereticMeterBack.setAlpha(hereticMeterColor.getAlpha() / 2);
-		hereticMeter = new Bar(
-			192 / FirstPolygon.getRenderScale().x, 16 / FirstPolygon.getRenderScale().y, 0,
-			new Point(
-				background.getPosition().x,
-				background.getPosition().y -
-					(Display.getHeight() / 2) / FirstPolygon.getRenderScale().y + 48 / FirstPolygon.getRenderScale().y),
-				(float)hereticSouls / (float)SAME_SOUL_MAX, hereticMeterColor, hereticMeterBack);
+		if(enableDeath && enableHeretics){
+			Color hereticMeterColor = Shepherd.HERETIC;
+			Color hereticMeterBack = new Color(hereticMeterColor);
+			hereticMeterBack.setAlpha(hereticMeterColor.getAlpha() / 2);
+			hereticMeter = new Bar(
+				192 / FirstPolygon.getRenderScale().x, 16 / FirstPolygon.getRenderScale().y, 0,
+				new Point(
+					background.getPosition().x,
+					background.getPosition().y -
+						(Display.getHeight() / 2) / FirstPolygon.getRenderScale().y + 48 / FirstPolygon.getRenderScale().y),
+					(float)hereticSouls / (float)SAME_SOUL_MAX, hereticMeterColor, hereticMeterBack);
+		}
+		reset =
+			new FirstPolygon(
+				FirstPolygon.radiusToPoints(64 / FirstPolygon.getRenderScale().x, 3),
+				Math.PI, FirstPolygon.getScreenCenter(), shepherd.getColor());
 		resume =
 			new FirstPolygon(
 				FirstPolygon.radiusToPoints(64 / FirstPolygon.getRenderScale().x, 3),
@@ -348,12 +387,11 @@ public class Game{
 	}
 	
 	private void levelUp(){
-		soulsLeft = 0;
 		Point position = shepherd.getSouls().get(0).getPosition();
-		for(int i = 0; i < 4; i++){
-			shepherd.getSouls().remove(0);
-		}
 		if(enableProphets){
+			for(int i = 0; i < 4; i++){
+				shepherd.getSouls().remove(0);
+			}
 			prophets.add(Shepherd.generateProphet(shepherd.getRadius() + 16, position));
 		}
 		if(enableHeretics){
@@ -379,7 +417,6 @@ public class Game{
 					generateLostColor(),
 					Shepherd.LOST));
 		}
-		soulsLeft += SAME_SOUL_MAX * 2;
 	}
 	
 	private void close(){
