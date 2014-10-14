@@ -19,6 +19,7 @@ import com.desukase.engine.polygon.FirstPolygon;
 
 public class Game{
 
+	private static final boolean LOAD_SOUNDS = true;
 	private ArrayList<Soul> souls = new ArrayList<Soul>();
 	private ArrayList<Explosion> explosions = new ArrayList<Explosion>();
 	private ArrayList<Shepherd> heretics = new ArrayList<Shepherd>();
@@ -45,8 +46,8 @@ public class Game{
 	private Bar hereticMeter;
 	private int shepherdSouls;
 	private int hereticSouls;
-	private Sound music = new Sound("Wisps_of_Whorls.ogg", true, true, false);
-	private Sound conversion = new Sound("Conversion.ogg", false, false, false);
+	private Sound music;
+	private Sound conversion;
 	private Controls gameControls;
 	private boolean refreshSeed;
 	private String seed;
@@ -105,9 +106,13 @@ public class Game{
 			dataSet.getValue("reset"),
 			dataSet.getValue("toggleFollow")
 		});
+		if (LOAD_SOUNDS) {
+			music = new Sound("Wisps_of_Whorls.ogg", true, true, false);
+			conversion = new Sound("Conversion.ogg", false, false, false);
+		}
 		reset();
 		setBackground();
-		music.play(1.0f, 1.0f);
+		if (LOAD_SOUNDS) music.play(1.0f, 1.0f);
 	}
 	
 	public void update(){
@@ -131,16 +136,18 @@ public class Game{
 			}
 		}
 		if(wasPaused != paused.getState()){
-			conversion.play(1.0f, 0.1f);
+			if (LOAD_SOUNDS) conversion.play(1.0f, 0.1f);
 			if(!dead){
 				setFrozen(paused.getState());
 			}
 			if(paused.getState()){
-				music.pause();
-				GameDisplay.showCursor(true);
+				if (LOAD_SOUNDS) music.pause();
+				cursor.show(true);
+//				GameDisplay.showCursor(true);
 			}else{
-				music.resume(1.0f, 1.0f);
-				GameDisplay.showCursor(false);
+				if (LOAD_SOUNDS) music.resume(1.0f, 1.0f);
+				cursor.show(false);
+//				GameDisplay.showCursor(false);
 			}
 		}
 		fullscreen.update(gameControls.getState(FULLSCREEN));
@@ -180,7 +187,7 @@ public class Game{
 						if(heretic.convertSoul(soul, souls)){
 							if(radius == shepherd.getRadius()){
 								usurper = heretic;
-								conversion.play(1.0f, 0.25f);
+								if (LOAD_SOUNDS) conversion.play(1.0f, 0.25f);
 								hereticSouls++;
 							}
 							break soulLoop;
@@ -192,7 +199,7 @@ public class Game{
 						prophet.applyInfluence(soul);
 						if(prophet.convertSoul(soul, souls)){
 							if(radius == shepherd.getRadius()){
-								conversion.play(1.0f, 0.5f);
+								if (LOAD_SOUNDS) conversion.play(1.0f, 0.5f);
 								shepherdSouls++;
 							}
 							break soulLoop;
@@ -202,7 +209,7 @@ public class Game{
 				if(soul.isLost() && soul.getRadius() <= shepherd.getRadius()){
 					shepherd.applyInfluence(soul);
 					if(shepherd.convertSoul(soul, souls)){
-						conversion.play(1.0f, 0.5f);
+						if (LOAD_SOUNDS) conversion.play(1.0f, 0.5f);
 						if(radius == shepherd.getRadius()){
 							shepherdSouls++;
 						}
@@ -306,8 +313,8 @@ public class Game{
 				FirstPolygon.getScreenCenter().x + 192 / FirstPolygon.getRenderScale().x,
 				FirstPolygon.getScreenCenter().y);
 			close.update(delta);
-			cursor.update(delta);
 		}
+		cursor.update(delta);
 		foreground.update(delta);
 	}
 	

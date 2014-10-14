@@ -4,11 +4,9 @@ You are the Chosen, the soul whose goal is to show lost souls the Way.
 However, the Way is beset by the Red, heretics who convert their own souls to have them stray from the Way.
 The Blue, the Chosen's prophets, preach the word of the Way as the Chosen would, showing souls the Way.
 
-Install by dragging the KesV folder out of the .zip.
 Controls and settings can be found and edited in settings.txt
 KesV uses the WTFPL (check LICENSE.txt), so feel free to go ham.
 
-Sometimes there's news at the official site: http://desukase.wordpress.com/
 Feel free to direct questions and concerns at desukase@gmail.com
 
 Thanks to Kevin MacLeod for creating wonderful, royalty-free music!
