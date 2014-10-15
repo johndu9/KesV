@@ -18,7 +18,7 @@ public class GameCursor extends FirstPolygon{
 	public GameCursor(){
 		super(radiusToPoints(10, 3), 0, new Point(0, 0), Color.EMPTY);
 		outline = new FirstPolygon(radiusToPoints(12, 3), 0, new Point(0, 0), Color.EMPTY);
-		selection = new FirstPolygon(sizeToPoints(0), 0, new Point(0, 0), Color.EMPTY);
+		selection = new FirstPolygon(sizeToPoints(0), 0, new Point(0, 0), Game.FOREGROUND);
 	}
 	
 	public void update(int delta){
@@ -28,14 +28,11 @@ public class GameCursor extends FirstPolygon{
 			if (wasDown != selecting.getState()) {
 				selectPoint = getPosition();
 			}
-			selection.setColor(Game.FOREGROUND);
 			float deltaX = getPosition().x - selectPoint.x;
 			float deltaY = getPosition().y - selectPoint.y;
 			selection.setPoints(sizeToPoints(deltaX, deltaY));
 			selection.setPosition(selectPoint.x + deltaX / 2, selectPoint.y + deltaY / 2);
 			selection.update(delta);
-		} else {
-			selection.setColor(Color.EMPTY);
 		}
 		outline.update(delta);
 		outline.setPoints(radiusToPoints(15 / FirstPolygon.getRenderScale().x, 3));
@@ -55,6 +52,10 @@ public class GameCursor extends FirstPolygon{
 			outline.setColor(Color.EMPTY);
 			setColor(Color.EMPTY);
 		}
+	}
+	
+	public boolean isSelecting() {
+		return selecting.getState();
 	}
 	
 	public boolean isSelected(Point point) {

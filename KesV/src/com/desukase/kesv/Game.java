@@ -303,16 +303,16 @@ public class Game{
 		}
 		if(paused.getState()){
 			reset.setPosition(
-				FirstPolygon.getScreenCenter().x - 192 / FirstPolygon.getRenderScale().x,
-				FirstPolygon.getScreenCenter().y);
+				FirstPolygon.getScreenCenter().x - 224 / FirstPolygon.getRenderScale().x,
+				FirstPolygon.getScreenCenter().y + 224 / FirstPolygon.getRenderScale().y);
 			reset.update(delta);
 			resume.setPosition(
 				FirstPolygon.getScreenCenter().x,
-				FirstPolygon.getScreenCenter().y);
+				FirstPolygon.getScreenCenter().y + 224 / FirstPolygon.getRenderScale().y);
 			resume.update(delta);
 			close.setPosition(
-				FirstPolygon.getScreenCenter().x + 192 / FirstPolygon.getRenderScale().x,
-				FirstPolygon.getScreenCenter().y);
+				FirstPolygon.getScreenCenter().x + 224 / FirstPolygon.getRenderScale().x,
+				FirstPolygon.getScreenCenter().y + 224 / FirstPolygon.getRenderScale().y);
 			close.update(delta);
 		}
 		cursor.update(delta);
@@ -382,15 +382,15 @@ public class Game{
 		}
 		reset =
 			new FirstPolygon(
-				FirstPolygon.radiusToPoints(64 / FirstPolygon.getRenderScale().x, 3),
+				FirstPolygon.radiusToPoints(48 / FirstPolygon.getRenderScale().x, 3),
 				Math.PI, FirstPolygon.getScreenCenter(), shepherd.getColor());
 		resume =
 			new FirstPolygon(
-				FirstPolygon.radiusToPoints(64 / FirstPolygon.getRenderScale().x, 3),
+				FirstPolygon.radiusToPoints(48 / FirstPolygon.getRenderScale().x, 3),
 				0, FirstPolygon.getScreenCenter(), shepherd.getColor());
 		close =
 			new FirstPolygon(
-				FirstPolygon.sizeToPoints(96 / FirstPolygon.getRenderScale().x),
+				FirstPolygon.sizeToPoints(64 / FirstPolygon.getRenderScale().x),
 				0, FirstPolygon.getScreenCenter(), shepherd.getColor());
 	}
 	
