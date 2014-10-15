@@ -19,7 +19,7 @@ import com.desukase.engine.polygon.FirstPolygon;
 
 public class Game{
 
-	private static final boolean LOAD_SOUNDS = true;
+	private static final boolean LOAD_SOUNDS = false;
 	private ArrayList<Soul> souls = new ArrayList<Soul>();
 	private ArrayList<Explosion> explosions = new ArrayList<Explosion>();
 	private ArrayList<Shepherd> heretics = new ArrayList<Shepherd>();
@@ -112,6 +112,7 @@ public class Game{
 		}
 		reset();
 		setBackground();
+		cursor.show(true);
 		if (LOAD_SOUNDS) music.play(1.0f, 1.0f);
 	}
 	
@@ -142,11 +143,11 @@ public class Game{
 			}
 			if(paused.getState()){
 				if (LOAD_SOUNDS) music.pause();
-				cursor.show(true);
-//				GameDisplay.showCursor(true);
+//				cursor.show(true);
+				GameDisplay.showCursor(true);
 			}else{
 				if (LOAD_SOUNDS) music.resume(1.0f, 1.0f);
-				cursor.show(false);
+//				cursor.show(false);
 //				GameDisplay.showCursor(false);
 			}
 		}
