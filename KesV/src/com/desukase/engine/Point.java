@@ -165,6 +165,22 @@ public class Point{
 	public static Point add(Point one, Point two){
 		return new Point(one.x + two.x, one.y + two.y);
 	}
+	
+	public static Point add(Point one, float value) {
+		return add(one, new Point(value, value));
+	}
+	
+	public static Point[] add(Point[] one, Point two) {
+		Point[] points = new Point[one.length];
+		for (int i = 0; i < one.length; i++) {
+			points[i] = new Point(one[i].x + two.x, one[i].y + two.y);
+		}
+		return points;
+	}
+	
+	public static Point[] add(Point[] one, float value) {
+		return add(one, new Point(value, value));
+	}
 
 	/**
 	 * Keeps the polygon in the bounds by moving it to the other side of the bounds

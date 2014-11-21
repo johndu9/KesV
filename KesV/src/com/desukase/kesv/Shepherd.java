@@ -126,7 +126,13 @@ public class Shepherd extends MovablePolygon implements Controllable{
 			handleControls(delta);	
 		}
 		super.update(delta);
+//		territory.renderOutline(10, CHOSEN);
 		territory.update(delta);
+	}
+	
+	public void renderBox(float width, Color color) {
+		super.renderBox(width, color);
+		territory.renderBox(width, color);
 	}
 	
 	public void handleControls(int delta){

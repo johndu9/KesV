@@ -63,6 +63,7 @@ public class Soul extends MovablePolygon{
 	}
 	
 	public void updateTerritory(int delta){
+//		territory.renderOutline(10, getColor());
 		territory.update(delta);
 	}
 	

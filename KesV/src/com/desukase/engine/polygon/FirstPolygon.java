@@ -119,6 +119,8 @@ public class FirstPolygon{
 		setHitbox();
 		if(color.getAlpha() > 0 && Display.isVisible()){
 			render();
+//			renderBox(10, DEBUG_COLOR);
+//			renderOutline(10, DEBUG_COLOR);
 		}
 	}
 	
@@ -329,6 +331,29 @@ public class FirstPolygon{
 	public void renderCoordinates(){
 		renderLine(Display.getHeight(), DEBUG_LINE_WIDTH, Math.PI / 2, new Point(position.x, 0), DEBUG_COLOR, false, false);
 		renderLine(Display.getWidth(), DEBUG_LINE_WIDTH, 0, new Point(0, position.y), DEBUG_COLOR, false, false);
+	}
+	
+	public void renderBox(float width, Color color) {
+		renderLine(this.width, width, 0, new Point(position.x - this.width / 2, position.y + height / 2), color, true, true);
+		renderLine(this.width, width, 0, new Point(position.x - this.width / 2, position.y - height / 2), color, true, true);
+		renderLine(height, width, Math.PI / 2, new Point(position.x + this.width / 2, position.y - height / 2), color, true, true);
+		renderLine(height, width, Math.PI / 2, new Point(position.x - this.width / 2, position.y - height / 2), color, true, true);
+	}
+	
+	public void renderOutline(float width, Color color){
+		for(int i = 0; i < points.length; i++){
+			Point p = new Point(
+				(float)(points[i].x * Math.cos(direction) - points[i].y * Math.sin(direction)),
+				(float)(points[i].y * Math.cos(direction) + points[i].x * Math.sin(direction)));
+			Point n = new Point(
+				(float)(points[(i + 1) % points.length].x * Math.cos(direction) - points[(i + 1) % points.length].y * Math.sin(direction)),
+				(float)(points[(i + 1) % points.length].y * Math.cos(direction) + points[(i + 1) % points.length].x * Math.sin(direction)));
+//			}
+//			for (int i = 0; i < points.length; i++) {
+//				Point p = points[i].scalePoint((float)Math.cos(direction), (float)Math.sin(direction));
+//				Point n = points[(i + 1) % points.length].scalePoint((float)Math.cos(direction), (float)Math.sin(direction));
+			renderLine((float)p.distanceTo(n), width, p.directionTo(n), Point.add(position, p), color, true, true);
+		}
 	}
 	
 	/**

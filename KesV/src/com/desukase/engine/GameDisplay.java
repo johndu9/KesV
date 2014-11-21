@@ -27,14 +27,15 @@ public class GameDisplay{
 	private static int delta;
 	/** Maximum frames per second */
 	public static int frameCap;
-	/** Delays the frames */
-	private static Timer titleDelay = new Timer();
 	/** Allows other classes to set the frame cap */
 	public static int setFrameCap;
 	/** Width of windowed mode */
 	public static int windowedWidth = 800;
 	/** Height of windowed mode */
 	public static int windowedHeight = 600;
+	
+	private static int counter = 0;
+	private static int accum = 0;
 
 	/**
 	 * Initializes the game display and loads in the icons
@@ -99,6 +100,21 @@ public class GameDisplay{
 		if(Display.isCloseRequested()){
 			System.exit(0);
 		}
+		accum += delta;
+		if (accum >= 1000) {
+			accum = 0;
+			framesPerSecond = counter;
+			counter = 0;
+		} else {
+			counter++;
+		}
+	}
+	
+	/**
+	 * @return Frames per second
+	 */
+	public static int getFramesPerSecond() {
+		return framesPerSecond;
 	}
 	
 	/**
@@ -113,18 +129,13 @@ public class GameDisplay{
 	 * Sets the title to something useful for debug
 	 * @param polygonCount Number of polygons
 	 */
-	public static void setDebugTitle(int polygonCount){
+	public static void setDebugTitle(){
 		String title =
 			"FPS: " + framesPerSecond +
 			" | TME: " + Timer.getTime() +
-			" | POL: " + polygonCount +
 			" | MSE: " + "x" + Mouse.getX() + "/" + "y" + (Display.getHeight() - Mouse.getY())
 			;
-		framesPerSecond++;
-		if(titleDelay.getDelay((long)(1000 * Timer.getTimerSpeed()))){
-			setTitle(title);
-			framesPerSecond = 0;
-		}
+		setTitle(title);
 	}
 	
 	/**

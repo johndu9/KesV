@@ -117,6 +117,7 @@ public class Game{
 	}
 	
 	public void update(){
+//		GameDisplay.setDebugTitle();
 		wasReset = gameControls.getState(RESET);
 		wasPaused = paused.getState();
 		wasFullscreen = fullscreen.getState();
@@ -233,8 +234,10 @@ public class Game{
 		}
 		if(!dead){
 			FirstPolygon.softCenterOnPolygon(shepherd, 28.0);
+//			FirstPolygon.centerOnPolygon(shepherd);
 		}else{
 			FirstPolygon.softCenterOnPolygon(usurper, 28.0);
+//			FirstPolygon.centerOnPolygon(usurper);
 		}
 		background.setPosition(FirstPolygon.getScreenCenter());
 		foreground.setPosition(background.getPosition());
@@ -297,6 +300,9 @@ public class Game{
 		
 		arrow.update(delta);
 		shepherd.update(delta);
+		if (cursor.isSelected(shepherd)) {
+			shepherd.renderBox(2 / FirstPolygon.getRenderScale().x, Shepherd.CHOSEN);
+		}
 		shepherdMeter.update(delta);
 		if(enableDeath && enableHeretics){
 			hereticMeter.update(delta);
